@@ -1,0 +1,26 @@
+{
+  "IndividualProgressionAddon": {
+    "repository": "CosmicCuddle/Individual-Progression-Companion",
+    "branch": "main",
+    "source_folder": ".",
+    "toc": "IndividualProgressionAddon.toc"
+  },
+  "DungeonJournal": {
+    "repository": "CosmicCuddle/Naxx-Dungeon-Journal",
+    "branch": "main",
+    "source_folder": ".",
+    "toc": "DungeonJournal.toc"
+  },
+  "MultiBot": {
+    "repository": "CosmicCuddle/MultiBot-Chatless-Naxxramas",
+    "branch": "main",
+    "source_folder": ".",
+    "toc": "MultiBot.toc"
+  },
+  "NaxxLootLottery": {
+    "repository": "CosmicCuddle/Naxxramas-Loot-Ledger",
+    "branch": "main",
+    "source_folder": "NaxxLootLottery",
+    "toc": "NaxxLootLottery.toc"
+  }
+}
