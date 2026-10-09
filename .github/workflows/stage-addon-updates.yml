@@ -13,6 +13,7 @@ on:
           - DungeonJournal
           - MultiBot
           - NaxxLootLottery
+          - NClassicBattlegrounds
       source_ref:
         description: "Optional branch/tag/commit (one addon only; blank = main)"
         type: string
