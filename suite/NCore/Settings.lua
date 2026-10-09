@@ -1,5 +1,6 @@
 -- N Addon Suite module control panel, WoW 3.3.5a / Lua 5.1.
--- Addons cannot be safely unloaded after they have loaded. Apply with /reload.
+-- Addons cannot be safely unloaded once running; use Reload UI.
+-- This layout is intentionally compact to fit WoW's larger UI fonts.
 
 local Suite = NCore
 local panel
@@ -9,6 +10,7 @@ local function MakeLabel(parent, font, text, x, y)
     local label = parent:CreateFontString(nil, "OVERLAY", font)
     label:SetPoint("TOPLEFT", parent, "TOPLEFT", x, y)
     label:SetText(text)
+    label:SetJustifyH("LEFT")
     return label
 end
 
@@ -20,31 +22,40 @@ local function MakeButton(parent, label, width, height)
     return button
 end
 
+local function Separator(parent, y)
+    local line = parent:CreateTexture(nil, "ARTWORK")
+    line:SetTexture("Interface\\Buttons\\WHITE8X8")
+    line:SetVertexColor(0.70, 0.54, 0.25, 0.40)
+    line:SetPoint("TOPLEFT", parent, "TOPLEFT", 28, y)
+    line:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -28, y)
+    line:SetHeight(1)
+end
+
 local function Refresh()
     if not panel then return end
 
     for _, entry in ipairs(rows) do
-        local row = entry.row
         local enabled, installed = Suite:IsEnabled(entry.module.folder)
-        row.check:SetChecked(installed and enabled)
+        entry.row.check:SetChecked(installed and enabled)
+
         if installed then
-            row.check:Enable()
+            entry.row.check:Enable()
             if enabled then
-                row.status:SetText("|cff65d86aEnabled|r")
+                entry.row.status:SetText("|cff65d86aEnabled|r")
             else
-                row.status:SetText("|cffedb96bDisabled|r")
+                entry.row.status:SetText("|cffedb96bDisabled|r")
             end
         else
-            row.check:Disable()
-            row.status:SetText("|cffff7878Not installed|r")
+            entry.row.check:Disable()
+            entry.row.status:SetText("|cffff7878Not installed|r")
         end
     end
 
     if Suite.needsReload then
-        panel.notice:SetText("|cffffcc66Changes saved. Reload UI to apply.|r")
+        panel.notice:SetText("|cffffcc66Changes saved. Reload to apply.|r")
         panel.reload:Enable()
     else
-        panel.notice:SetText("Choose which optional addons load when the UI starts.")
+        panel.notice:SetText("Choose modules. Reload after changes.")
         panel.reload:Disable()
     end
 end
@@ -64,52 +75,70 @@ local function CreatePanel()
     panel:SetScript("OnDragStart", function(self) self:StartMoving() end)
     panel:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
     panel:SetClampedToScreen(true)
+
+    -- A nearly opaque solid backing keeps nameplates, players and bright
+    -- scenery from competing with the settings text.
     panel:SetBackdrop({
-        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+        bgFile = "Interface\\Buttons\\WHITE8X8",
         edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
-        tile = true,
-        tileSize = 32,
+        tile = false,
         edgeSize = 32,
         insets = { left = 10, right = 10, top = 10, bottom = 10 }
     })
+    panel:SetBackdropColor(0.025, 0.02, 0.025, 0.96)
+    panel:SetBackdropBorderColor(0.68, 0.55, 0.28, 1)
     panel:Hide()
 
-    local title = MakeLabel(panel, "GameFontNormalLarge", "N Addon Suite", 27, -23)
+    local title = MakeLabel(panel, "GameFontNormalLarge", "N Addon Suite", 28, -23)
     title:SetTextColor(1, 0.85, 0.35)
-    MakeLabel(panel, "GameFontHighlightSmall", "Core v" .. Suite.version .. "   |   WoW 3.3.5a", 28, -49)
+    MakeLabel(panel, "GameFontHighlightSmall", "Core v" .. Suite.version .. "  |  WoW 3.3.5a", 28, -49)
 
     local close = CreateFrame("Button", nil, panel, "UIPanelCloseButton")
     close:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -8, -8)
+    Separator(panel, -72)
 
-    MakeLabel(panel, "GameFontNormal", "Required feature", 28, -82)
-    local locked = MakeLabel(panel, "GameFontHighlight", "N Classic Battlegrounds", 43, -111)
-    locked:SetTextColor(0.9, 0.95, 1)
-    local padlock = MakeLabel(panel, "GameFontNormalSmall", "ALWAYS ON", 494, -111)
-    padlock:SetTextColor(0.4, 0.95, 0.48)
-    MakeLabel(panel, "GameFontDisableSmall", "Expansion-aware PvP interface. Cannot be switched off individually.", 43, -131)
+    MakeLabel(panel, "GameFontNormal", "Required feature", 28, -86)
+    local required = MakeLabel(panel, "GameFontHighlight", "N Classic Battlegrounds", 43, -113)
+    required:SetTextColor(0.95, 0.95, 1)
 
-    MakeLabel(panel, "GameFontNormal", "Optional modules", 28, -161)
+    local requiredStatus = MakeLabel(panel, "GameFontNormalSmall", "ALWAYS ON", 0, 0)
+    requiredStatus:ClearAllPoints()
+    requiredStatus:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -34, -114)
+    requiredStatus:SetJustifyH("RIGHT")
+    requiredStatus:SetTextColor(0.40, 0.95, 0.48)
 
+    local requiredHint = MakeLabel(panel, "GameFontDisableSmall", "PvP era controls are part of the core; no separate toggle.", 43, -138)
+    requiredHint:SetWidth(530)
+
+    Separator(panel, -162)
+    MakeLabel(panel, "GameFontNormal", "Optional modules", 28, -177)
+
+    -- Descriptions span the full row below the title. Status appears on the
+    -- title line, so long descriptions cannot collide with status labels.
     for index, module in ipairs(Suite.modules) do
-        local moduleInfo = module  -- fresh Lua 5.1 upvalue for this row
+        local moduleInfo = module  -- dedicated upvalue for the click handler
         local row = CreateFrame("Frame", nil, panel)
-        row:SetPoint("TOPLEFT", panel, "TOPLEFT", 28, -181 - (index - 1) * 55)
-        row:SetWidth(565)
-        row:SetHeight(51)
+        row:SetPoint("TOPLEFT", panel, "TOPLEFT", 28, -200 - (index - 1) * 51)
+        row:SetWidth(564)
+        row:SetHeight(47)
 
         local check = CreateFrame("CheckButton", nil, row, "UICheckButtonTemplate")
         check:SetPoint("TOPLEFT", row, "TOPLEFT", 0, -1)
         check:SetWidth(25)
         check:SetHeight(25)
 
-        local text = MakeLabel(row, "GameFontHighlight", module.title, 34, -3)
-        text:SetTextColor(0.95, 0.95, 0.95)
-        local desc = MakeLabel(row, "GameFontDisableSmall", module.description, 34, -25)
-        desc:SetWidth(385)
-        desc:SetJustifyH("LEFT")
+        local name = MakeLabel(row, "GameFontHighlight", module.title, 34, -3)
+        name:SetWidth(365)
+        name:SetTextColor(0.95, 0.95, 0.95)
 
-        local status = MakeLabel(row, "GameFontNormalSmall", "", 461, -7)
-        status:SetWidth(94)
+        local desc = MakeLabel(row, "GameFontDisableSmall", module.description, 34, -26)
+        desc:SetWidth(515)
+        desc:SetHeight(16)
+
+        local status = MakeLabel(row, "GameFontNormalSmall", "", 0, 0)
+        status:ClearAllPoints()
+        status:SetPoint("TOPRIGHT", row, "TOPRIGHT", -4, -5)
+        status:SetWidth(126)
         status:SetJustifyH("RIGHT")
 
         check:SetScript("OnClick", function(self)
@@ -126,16 +155,14 @@ local function CreatePanel()
         rows[index] = { row = row, module = moduleInfo }
     end
 
-    panel.notice = MakeLabel(panel, "GameFontHighlightSmall", "", 28, -416)
-    panel.notice:SetWidth(400)
-    panel.notice:SetJustifyH("LEFT")
+    Separator(panel, -419)
+    panel.notice = MakeLabel(panel, "GameFontHighlightSmall", "", 28, -441)
+    panel.notice:SetWidth(430)
+    panel.notice:SetHeight(18)
 
-    panel.reload = MakeButton(panel, "Reload UI", 100, 24)
-    panel.reload:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -27, 24)
+    panel.reload = MakeButton(panel, "Reload UI", 100, 25)
+    panel.reload:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -28, 23)
     panel.reload:SetScript("OnClick", function() Suite:RequestReload() end)
-
-    local hint = MakeLabel(panel, "GameFontDisableSmall", "Classic Battlegrounds remains active whenever NCore loads.", 28, -448)
-    hint:SetWidth(440)
 
     panel:SetScript("OnShow", Refresh)
     return panel
