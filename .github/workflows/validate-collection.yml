@@ -21,7 +21,40 @@ jobs:
       - name: Check installable ZIP when addon snapshots exist
         run: |
           if [[ -f sources.lock.json ]]; then
-            python3 scripts/build_bundle.py v0.0.0-ci dist
+            python3 scripts/build_bundle.py v2.0.0-alpha.1 dist
           else
             echo 'No approved source snapshots yet; skipping ZIP build.'
           fi
+
+      - name: Install Lua 5.1
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y lua5.1
+      - name: Validate Lua 5.1 syntax and suite toggles
+        run: |
+          set -euo pipefail
+          luac5.1 -p suite/NCore/Core.lua suite/NCore/Settings.lua suite/NCore/LegacyCheck.lua
+          lua5.1 scripts/test_suite_core.lua
+          lua5.1 scripts/test_suite_settings.lua
+          lua5.1 scripts/test_suite_legacy.lua
+          python3 - <<'PY'
+          import subprocess
+          import tempfile
+          import zipfile
+          from pathlib import Path
+          archive = Path('dist/N-Addon-Collection-v2.0.0-alpha.1.zip')
+          with tempfile.TemporaryDirectory() as tmp:
+              with zipfile.ZipFile(archive) as z:
+                  source = z.read('NCore/ClassicBattlegrounds/NClassicBattlegrounds.lua')
+              path = Path(tmp) / 'NClassicBattlegrounds.lua'
+              path.write_bytes(source)
+              subprocess.run(['luac5.1', '-p', str(path)], check=True)
+          print('Embedded Battlegrounds syntax is valid in Lua 5.1')
+          PY
+      - name: Upload test suite ZIP (not a public release)
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: n-addon-suite-v2-test
+          path: dist/N-Addon-Collection-v2.0.0-alpha.1.zip
+          if-no-files-found: error

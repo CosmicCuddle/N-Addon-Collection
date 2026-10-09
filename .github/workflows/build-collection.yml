@@ -26,7 +26,7 @@ permissions:
 
 jobs:
   bundle:
-    if: "${{ github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'release: N Addon Collection v1.0.0') }}"
+    if: "${{ github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'release: N Addon Collection v2.0.0') }}"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,7 +36,7 @@ jobs:
           INPUT_VERSION: ${{ inputs.version }}
         run: |
           if [[ "$GITHUB_EVENT_NAME" == 'push' ]]; then
-            VERSION='v1.0.0'
+            VERSION='v2.0.0'
           else
             VERSION="$INPUT_VERSION"
           fi
@@ -48,6 +48,25 @@ jobs:
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
       - name: Build install-ready bundle
         run: python3 scripts/build_bundle.py "$VERSION" dist
+      - name: Verify v2 package has no Talent Calculator
+        run: |
+          python3 - <<'PY'
+          import json, zipfile
+          from pathlib import Path
+          archive = Path('dist') / f"N-Addon-Collection-{__import__('os').environ['VERSION']}.zip"
+          with zipfile.ZipFile(archive) as pack:
+              names = pack.namelist()
+              roots = {name.partition('/')[0] for name in names}
+              approved = {'NCore','IndividualProgressionAddon','DungeonJournal','MultiBot','NaxxLootLottery'}
+              assert roots == approved, f'Unexpected installed addon folders: {roots ^ approved}'
+              assert 'NCore/ClassicBattlegrounds/NClassicBattlegrounds.lua' in names
+              assert 'NTalentCalculator' not in roots
+              assert 'NClassicBattlegrounds' not in roots
+              assert '## Version: 2.0.0' in pack.read('NCore/NCore.toc').decode('utf-8')
+          lock = json.loads(Path('sources.lock.json').read_text())
+          assert 'NTalentCalculator' not in lock
+          print('Verified v2: required NCore, four optional folders, no Talent Calculator')
+          PY
       - name: Save downloadable Actions artifact
         uses: actions/upload-artifact@v4
         with:
@@ -69,18 +88,39 @@ jobs:
           import json
           from pathlib import Path
           lock = json.loads(Path('sources.lock.json').read_text())
-          print('## Included addon versions\n')
+          print('## N Addon Suite v2.0.0')
+          print('')
+          print('Standard release for WoW 3.3.5a. One downloadable suite managed through NCore.')
+          print('')
+          print('### Installed folders (exactly five)')
+          print('')
+          print('- **NCore** — required suite framework, settings, compatibility warnings and mandatory N Classic Battlegrounds')
+          print('- **IndividualProgressionAddon** — optional Individual Progression Companion')
+          print('- **DungeonJournal** — optional Dungeon Journal')
+          print('- **MultiBot** — optional MultiBot Chatless')
+          print('- **NaxxLootLottery** — optional N Loot Ledger (work in progress)')
+          print('')
+          print('**N Talent Calculator is NOT included** in this release. It continues as a separate addon in development.')
+          print('N Classic Battlegrounds is built into NCore and has no standalone folder or separate toggle.')
+          print('')
+          print('### Approved original addon sources')
           for addon, details in sorted(lock.items()):
               print(f"- **{addon} v{details['version'].removeprefix('v')}** — {details['repository']} at `{details['commit'][:12]}`")
-          print('\n## Installation\n')
-          print('Back up existing addon folders and `WTF` SavedVariables first.')
-          print('Extract the ZIP directly into `World of Warcraft/Interface/AddOns/` (no extra collection folder).')
-          print('\n## Testing status\n')
-          print('**N Loot Ledger (v0.1.0.27) is a work in progress and is not fully complete.**')
-          print('Some features, including real Master Loot awarding, still require controlled in-game and server testing.')
-          print('The collection itself is a standard release; inclusion does not mean every individual addon is feature-complete.')
-          print('N Classic Battlegrounds v1.0.0 has further progression-transition and optional server-side rules testing outstanding.')
-          print('MultiBot bridge and Naxxramas server features require the corresponding server modules.')
+          print('')
+          print('### Installation / upgrading from v1.0.0')
+          print('1. Close WoW. Back up all five existing addon folders and `WTF` SavedVariables.')
+          print('2. Remove the previous standalone `NClassicBattlegrounds` addon folder to avoid duplicate PvP hooks.')
+          print('3. If present, remove the older `ServerDungeonJournal` folder to avoid a duplicate `/dj` addon.')
+          print('4. Extract the release ZIP into `World of Warcraft/Interface/AddOns/`; do not nest an outer collection folder.')
+          print('5. Open `/nsettings` or `/nsuite` to configure four optional modules. After changes, use Reload UI.')
+          print('6. Optional diagnostic: `/nsuite check` scans known registered legacy addon folders.')
+          print('')
+          print('### Testing and compatibility notes')
+          print('- **N Loot Ledger (v0.1.0.27) remains WIP.** Real Master Loot awarding is not yet fully tested.')
+          print('- Classic Battlegrounds UI restrictions are client-side only; server-side queue restrictions need separate enforcement.')
+          print('- MultiBot bridge and specific Naxxramas systems require matching server modules.')
+          print('- Optional addon toggles apply after a UI reload, not by unloading Lua during gameplay.')
+          print('- Keep the [v1.0.0 release](https://github.com/CosmicCuddle/N-Addon-Collection/releases/tag/v1.0.0) as a rollback.')
           PY
           extra=()
           if [[ "$PRERELEASE" == 'true' ]]; then extra+=(--prerelease); fi
