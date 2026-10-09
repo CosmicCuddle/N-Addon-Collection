@@ -2,7 +2,7 @@
 ## Title: |cffE6C35CN|r Addon Suite
 ## Notes: Mandatory Classic Battlegrounds integration and optional addon manager for WoW 3.3.5a.
 ## Author: CosmicCuddle
-## Version: 2.0.0-alpha.1
+## Version: 2.0.0
 
 Core.lua
 ExpectedVersions.lua
