@@ -113,7 +113,7 @@ def addon_toc_with_dependency(source):
     # requires its manager. Preserve all unrelated optional dependencies.
     lines = [
         line for line in lines
-        if not re.match(r"^##\\s*OptionalDeps:\\s*NCore\\s*$", line.strip(), re.I)
+        if not re.match(r"^##\s*OptionalDeps:\s*NCore\s*$", line.strip(), re.I)
     ]
     lines.insert(1, "## Dependencies: NCore\n")
     return "".join(lines).encode("utf-8")
@@ -190,7 +190,7 @@ def build(version, output_dir):
                 if checkout_sha != lock[addon]["commit"]:
                     raise ValueError("Talent Calculator checkout does not match approved source commit")
             external_toc = (folder / toc).read_text(encoding="utf-8-sig")
-            match = re.search(r"^##\\s*Version:\\s*(.+)$", external_toc, re.M)
+            match = re.search(r"^##\s*Version:\s*(.+)$", external_toc, re.M)
             if not match or match.group(1).strip() != lock[addon]["version"]:
                 raise ValueError("Standalone Talent Calculator version does not match lock")
             if not (folder / "Data.lua").is_file():
