@@ -22,6 +22,28 @@ One downloadable ZIP containing exactly five WoW addon folders: `NCore/` plus th
 3. Open the **inner** `N-Addon-Collection-v2.0.0-alpha.1.zip` and extract its `NCore/`, `IndividualProgressionAddon/`, `DungeonJournal/`, `MultiBot/`, and `NaxxLootLottery/` folders directly into `World of Warcraft/Interface/AddOns/`.
 4. Check `Interface/AddOns/NCore/NCore.toc` and `Interface/AddOns/NCore/ClassicBattlegrounds/NClassicBattlegrounds.lua` exist. Do not create an extra outer collection folder.
 
+## Automatic older-addon warning
+
+NCore checks the addon list **silently on each login**. A warning window appears only when it detects:
+
+- `ServerDungeonJournal` (the previous Dungeon Journal folder).
+- `NaxxramasClassicBattlegrounds` or a separate `NClassicBattlegrounds` addon (older/duplicate Classic BG installations).
+- A version older than this collection's pinned `.toc` version for any of the four optional addons.
+
+The expected versions come directly from `sources.lock.json` when the suite package is built. No hardcoded version table needs updating after future approved source imports. Disabled-but-still-installed obsolete addons are also listed so they cannot be accidentally re-enabled.
+
+The warning only *reports* problems; it never deletes folders, modifies SavedVariables or disables addons. **Close the game**, back up the flagged addon folders, and move obsolete copies **outside** `Interface/AddOns`. Then launch WoW again. Use `/nsuite check` to manually rescan at any time. A clean install shows no popup. `/nsuite status` continues to provide module diagnostics.
+
+**Limit:** WoW 3.3.5a cannot enumerate arbitrary files from Lua. Files or folders that WoW does not register as an addon (for example a renamed backup with no matching `.toc`) cannot be detected. An addon with no readable version metadata cannot reliably be identified as outdated, though known legacy folder names can still be detected.
+
+### Older-version detection tests
+
+- [ ] With only the five suite folders installed, log in: **no warning** appears.
+- [ ] Add a backed-up copy of `ServerDungeonJournal` with its original valid `.toc`, log in: the warning names that old folder.
+- [ ] Remove it, leaving only current `DungeonJournal`: the warning disappears on next login.
+- [ ] With a standalone `NClassicBattlegrounds` folder installed as well as NCore, confirm the duplicate warning appears. Remove the standalone copy before continuing.
+- [ ] Use `/nsuite check` after cleanup to confirm a clean registered addon list.
+- [ ] Check that dismissed warnings do not delete files or erase settings.
 ## Functional tests
 
 - [ ] WoW 3.3.5a shows **N Addon Suite** and the four optional addons in the character-selection AddOns list.
