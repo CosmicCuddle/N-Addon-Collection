@@ -13,6 +13,8 @@ This is a **curated, manually approved collection**. Development remains in each
 
 **Four other addons are optional.** Players can enable or disable them using `/nsuite` or `/nsettings` and then click **Reload UI**. WoW 3.3.5a cannot reliably unload Lua modules that are already running. Each optional addon preserves its original folder name, `.toc` file, SavedVariables and commands.
 
+**Silent old-addon check:** On login, NCore checks registered addon folder names and versions. It stays quiet on clean installations and only opens a warning for known duplicate/renamed addons or versions older than the suite's approved source snapshots. It never removes files or changes SavedVariables. For manual checks use `/nsuite check`; use `/nsuite check demo` for a safe, clearly labelled example warning. WoW Lua cannot inspect arbitrary folders that the client has not registered as addons.
+
 This is a **test-only alpha design** pending real WoW gameplay verification. Follow the [v2 backup, testing and rollback instructions](docs/SUITE-V2-TEST-PLAN.md) before installing a test artifact. The original addon repositories are not modified, and v1.0.0 continues to be the stable public download.
 
 
