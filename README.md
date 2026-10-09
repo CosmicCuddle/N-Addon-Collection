@@ -7,13 +7,15 @@
 This is a **curated, manually approved collection**. Development remains in each original repository. Changes do not appear here until the collection owner reviews and merges an import pull request.
 ## N Addon Suite v2 — under development
 
-**The current public v1.0.0 release remains unchanged.** The v2 development branch adds an ElvUI-inspired central settings addon called `NCore` and switches the installer to **five folders total:** `NCore`, `IndividualProgressionAddon`, `DungeonJournal`, `MultiBot`, and `NaxxLootLottery`.
+**The current public v1.0.0 release remains unchanged.** The v2 development branch adds an ElvUI-inspired central settings addon called `NCore` and switches the installer to **six folders total:** `NCore`, `IndividualProgressionAddon`, `DungeonJournal`, `MultiBot`, `NaxxLootLottery`, and `NTalentCalculator`.
 
 **N Classic Battlegrounds is mandatory within NCore**, not an independently switchable module. It is still maintained in its own source repository but embedded into NCore during approved collection packaging. Its previous standalone folder must be removed before using the v2 suite (both versions would register overlapping PvP hooks).
 
-**Four other addons are optional.** Players can enable or disable them using `/nsuite` or `/nsettings` and then click **Reload UI**. WoW 3.3.5a cannot reliably unload Lua modules that are already running. Each optional addon preserves its original folder name, `.toc` file, SavedVariables and commands.
+**Five other addons are optional**, including the new server-aware **N Talent Calculator**. Players can enable or disable them using `/nsuite` or `/nsettings` and then click **Reload UI**. WoW 3.3.5a cannot reliably unload Lua modules that are already running. Each optional addon preserves its original folder name, `.toc` file, SavedVariables and commands.
 
 **Silent old-addon check:** On login, NCore checks registered addon folder names and versions. It stays quiet on clean installations and only opens a warning for known duplicate/renamed addons or versions older than the suite's approved source snapshots. It never removes files or changes SavedVariables; players are asked to close WoW and delete outdated/duplicate addon folders (reinstalling the current module from the suite when appropriate). For manual checks use `/nsuite check`; use `/nsuite check demo` for a safe, clearly labelled example warning. WoW Lua cannot inspect arbitrary folders that the client has not registered as addons.
+
+The experimental Talent Calculator (`NTalentCalculator`) reuses the approved Resource Hub's custom 830-talent DBC snapshot, checks Individual Progression era, hides the Vanilla/TBC final-row side talents and later rows, and shares **NT1 codes** with the website. Type `/ntalent` to open it, `/ntalent code` to select a code for Ctrl+C, or `/ntalent import NT1:...` to load one. Its additional implementation and test plan is in [N Talent Calculator Roadmap](docs/N-TALENT-CALCULATOR-ROADMAP.md).
 
 This is a **test-only alpha design** pending real WoW gameplay verification. Follow the [v2 backup, testing and rollback instructions](docs/SUITE-V2-TEST-PLAN.md) before installing a test artifact. The original addon repositories are not modified, and v1.0.0 continues to be the stable public download.
 
