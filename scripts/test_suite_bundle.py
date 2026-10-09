@@ -29,7 +29,7 @@ class TestSuitePackage(unittest.TestCase):
 
     def test_exact_install_folders(self):
         names = {name.split("/", 1)[0] for name in self.names}
-        self.assertEqual(names, {"NCore", *OPTIONAL})
+        self.assertEqual(names, {"NCore", *OPTIONAL, "NTalentCalculator"})
         self.assertNotIn(MANDATORY, names)
 
     def test_manifests_are_loadable(self):
@@ -49,6 +49,17 @@ class TestSuitePackage(unittest.TestCase):
             self.assertIn("## Dependencies: NCore", text)
             self.assertIn("## Interface: 30300", text)
 
+    def test_talent_module_and_server_dbc_data(self):
+        toc = self.archive.read("NTalentCalculator/NTalentCalculator.toc").decode()
+        self.assertIn("## Dependencies: NCore", toc)
+        self.assertIn("## SavedVariables: NTalentCalculatorDB", toc)
+        for file in ("Data.lua", "Engine.lua", "Progression.lua", "UI.lua"):
+            self.assertIn(file, toc)
+            self.assertIn("NTalentCalculator/" + file, self.names)
+        source = self.archive.read("NTalentCalculator/Data.lua").decode()
+        self.assertIn("NTalentCalculatorData", source)
+        self.assertIn("sourceCommit", source)
+        self.assertIn("Stormstrike", source)
     def test_bg_is_integrated_and_mandatory(self):
         data = self.archive.read(
             "NCore/ClassicBattlegrounds/NClassicBattlegrounds.lua"
