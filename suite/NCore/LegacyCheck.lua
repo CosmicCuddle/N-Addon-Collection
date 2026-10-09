@@ -160,10 +160,10 @@ local function CreateWarningFrame()
     frame.more = AddLabel(frame, "GameFontNormalSmall", "",
         32, -250, 548)
     frame.help = AddLabel(frame, "GameFontHighlightSmall",
-        "Close WoW, back up the listed folders, and move old copies",
+        "Close WoW and delete the old addon folder(s) listed above.",
         30, -272, 550)
     AddLabel(frame, "GameFontHighlightSmall",
-        "outside Interface/AddOns. Keep your WTF SavedVariables.",
+        "If a module is outdated, reinstall it from the latest suite ZIP.",
         30, -291, 550)
 
     frame.dismiss = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
