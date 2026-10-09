@@ -54,6 +54,7 @@ jobs:
           lua5.1 scripts/test_talent_engine.lua
           lua5.1 scripts/test_talent_dataset.lua
           lua5.1 scripts/test_talent_ui.lua
+          lua5.1 scripts/test_talent_progression.lua
           python3 - <<'PY'
           import subprocess
           import tempfile
