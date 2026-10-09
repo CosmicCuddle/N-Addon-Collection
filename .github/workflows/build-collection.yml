@@ -56,4 +56,4 @@ jobs:
           printf '## Included addon snapshots\n\nSource versions and commit hashes: see sources.lock.json at this release tag.\n\nExtract the addon folders into World of Warcraft/Interface/AddOns/.\n' > release-notes.txt
           extra=()
           if [[ "$PRERELEASE" == "true" ]]; then extra+=(--prerelease); fi
-          gh release create "$VERSION" "dist/Naxxramas-Addon-Collection-$VERSION.zip" --target "$GITHUB_SHA" --title "Naxxramas Addon Collection $VERSION" --notes-file release-notes.txt "${extra[@]}"
+          gh release create "$VERSION" "dist/N-Addon-Collection-$VERSION.zip" --target "$GITHUB_SHA" --title "N Addon Collection $VERSION" --notes-file release-notes.txt "${extra[@]}"
