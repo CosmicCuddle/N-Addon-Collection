@@ -1,0 +1,64 @@
+name: Stage approved addon update
+
+on:
+  workflow_dispatch:
+    inputs:
+      addon:
+        description: "Which addon should be staged?"
+        type: choice
+        required: true
+        options:
+          - all
+          - IndividualProgressionAddon
+          - DungeonJournal
+          - MultiBot
+          - NaxxLootLottery
+      source_ref:
+        description: "Optional branch/tag/commit (one addon only; blank = main)"
+        type: string
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: staging-addon-snapshots
+  cancel-in-progress: false
+
+jobs:
+  stage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out collection
+        uses: actions/checkout@v4
+      - name: Stage source snapshot
+        env:
+          SELECTED_ADDON: ${{ inputs.addon }}
+          SOURCE_REF: ${{ inputs.source_ref }}
+        run: |
+          python3 scripts/sync_addons.py --addon "$SELECTED_ADDON" --ref "$SOURCE_REF"
+      - name: Check scripts compile
+        run: python3 -m compileall -q scripts
+      - name: Create pull request for review (never auto-merge)
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: staging/addon-snapshots
+          delete-branch: true
+          commit-message: "chore: stage reviewed addon source snapshots"
+          title: "Stage addon collection snapshots"
+          body: |
+            This PR stages addon files for human review.
+            It does not modify the original addon repositories.
+
+            Before merging:
+            - Check versions and exact source commits in sources.lock.json.
+            - Confirm changes were already tested in their source repositories.
+            - Verify addon folder names and attribution/licence files.
+            - Merge only after approval.
+
+            No release is published automatically.
+          add-paths: |
+            addons/
+            sources.lock.json
