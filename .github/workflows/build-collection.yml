@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Collection version, e.g. v1.0.0
+        description: Collection version, e.g. v1.0.0-rc.1
         required: true
         type: string
       publish_release:
@@ -17,35 +17,47 @@ on:
         type: boolean
         required: true
         default: true
+  push:
+    branches:
+      - main
 
 permissions:
   contents: write
 
 jobs:
   bundle:
+    if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'release: N Addon Collection v1.0.0-rc.1') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Validate version and build installable ZIP
+      - name: Select version and validate
+        id: meta
         env:
-          VERSION: ${{ inputs.version }}
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
+          if [[ "$GITHUB_EVENT_NAME" == 'push' ]]; then
+            VERSION='v1.0.0-rc.1'
+          else
+            VERSION="$INPUT_VERSION"
+          fi
           if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9.-]+)?$ ]]; then
             echo '::error::Use a version like v1.0.0 or v1.0.0-rc.1'
             exit 1
           fi
-          python3 scripts/build_bundle.py "$VERSION" dist
-      - name: Save downloadable test artifact
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+      - name: Build install-ready bundle
+        run: python3 scripts/build_bundle.py "$VERSION" dist
+      - name: Save downloadable Actions artifact
         uses: actions/upload-artifact@v4
         with:
-          name: addon-collection-${{ inputs.version }}
+          name: addon-collection-${{ steps.meta.outputs.version }}
           path: dist/*.zip
           if-no-files-found: error
-      - name: Publish only when explicitly requested
-        if: ${{ inputs.publish_release }}
+      - name: Publish only when expressly requested
+        if: ${{ github.event_name == 'push' || inputs.publish_release }}
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ inputs.version }}
           PRERELEASE: ${{ inputs.prerelease }}
         run: |
           set -euo pipefail
@@ -53,7 +65,21 @@ jobs:
             echo "::error::Release $VERSION already exists; choose a new version"
             exit 1
           fi
-          printf '## Included addon snapshots\n\nSource versions and commit hashes: see sources.lock.json at this release tag.\n\nExtract the addon folders into World of Warcraft/Interface/AddOns/.\n' > release-notes.txt
+          python3 - <<'PY' > release-notes.txt
+          import json
+          from pathlib import Path
+          lock = json.loads(Path('sources.lock.json').read_text())
+          print('## Included addon versions\n')
+          for addon, details in sorted(lock.items()):
+              print(f"- **{addon} v{details['version'].removeprefix('v')}** — {details['repository']} at `{details['commit'][:12]}`")
+          print('\n## Installation\n')
+          print('Back up existing addon folders and `WTF` SavedVariables first.')
+          print('Extract the ZIP directly into `World of Warcraft/Interface/AddOns/` (no extra collection folder).')
+          print('\n## Testing status\n')
+          print('**Collection pre-release.** N Loot Ledger remains in development; real loot awards require controlled server testing.')
+          print('N Classic Battlegrounds v1.0.0 has further progression-transition and optional server-side rules testing outstanding.')
+          print('MultiBot bridge and Naxxramas server features require the corresponding server modules.')
+          PY
           extra=()
-          if [[ "$PRERELEASE" == "true" ]]; then extra+=(--prerelease); fi
+          if [[ "$GITHUB_EVENT_NAME" == 'push' || "$PRERELEASE" == 'true' ]]; then extra+=(--prerelease); fi
           gh release create "$VERSION" "dist/N-Addon-Collection-$VERSION.zip" --target "$GITHUB_SHA" --title "N Addon Collection $VERSION" --notes-file release-notes.txt "${extra[@]}"
