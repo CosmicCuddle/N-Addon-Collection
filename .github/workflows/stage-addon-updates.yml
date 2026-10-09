@@ -14,6 +14,7 @@ on:
           - MultiBot
           - NaxxLootLottery
           - NClassicBattlegrounds
+          - NTalentCalculator
       source_ref:
         description: "Optional branch/tag/commit (one addon only; blank = main)"
         type: string
@@ -57,6 +58,7 @@ jobs:
             - Check versions and exact source commits in sources.lock.json.
             - Confirm changes were already tested in their source repositories.
             - Verify addon folder names and attribution/licence files.
+            - Talent Calculator is pinned as an external source commit, not duplicated here.
             - Merge only after approval.
 
             No release is published automatically.
