@@ -69,6 +69,21 @@ class TestSuitePackage(unittest.TestCase):
             arcname = f"{addon}/{check.relative_to(path).as_posix()}"
             self.assertEqual(self.archive.read(arcname), check.read_bytes())
 
+
+    def test_silent_version_audit_is_bundled_and_pinned(self):
+        toc = self.archive.read("NCore/NCore.toc").decode()
+        self.assertIn("ExpectedVersions.lua", toc)
+        self.assertIn("LegacyCheck.lua", toc)
+        self.assertIn("NCore/LegacyCheck.lua", self.names)
+
+        import json
+        lock = json.loads((ROOT / "sources.lock.json").read_text(encoding="utf-8"))
+        versions = self.archive.read("NCore/ExpectedVersions.lua").decode()
+        self.assertIn("NCore.expectedVersions = {", versions)
+        for addon in OPTIONAL:
+            self.assertIn(f'["{addon}"] = "{lock[addon]["version"]}"', versions)
+        self.assertNotIn("NClassicBattlegrounds", versions)
+
     def test_original_saved_variables_preserved(self):
         for addon, saved_var in (
             ("IndividualProgressionAddon", "IndividualProgressionDB"),
