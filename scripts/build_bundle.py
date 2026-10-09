@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CORE = ROOT / "suite" / "NCore"
 SNAPSHOTS = ROOT / "addons"
 MANDATORY = "NClassicBattlegrounds"
+SUITE_OPTIONAL = "NTalentCalculator"
 OPTIONAL = (
     "IndividualProgressionAddon",
     "DungeonJournal",
@@ -172,6 +173,20 @@ def build(version, output_dir):
                 data = addon_toc_with_dependency(data)
             entries[arcname] = data
 
+    # Suite-maintained optional Talent Calculator lives inside this repository.
+    # Its DBC snapshot is generated at CI/build time from the pinned website
+    # calculator. Original source repositories and DBCs are not modified.
+    talent_folder = ROOT / "suite" / SUITE_OPTIONAL
+    talent_manifest = talent_folder / "NTalentCalculator.toc"
+    talent_data = talent_folder / "Data.lua"
+    if not talent_manifest.is_file() or not talent_data.is_file():
+        raise ValueError(
+            "Missing generated talent data; first run "
+            "scripts/build_talent_data.py with the pinned Resource Hub checkout"
+        )
+    for source, relative in iter_files(talent_folder):
+        entries[f"{SUITE_OPTIONAL}/{relative}"] = source.read_bytes()
+
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     archive = output_dir / f"{SUITE_PREFIX}-{version}.zip"
@@ -179,7 +194,7 @@ def build(version, output_dir):
         for name, data in sorted(entries.items()):
             z.writestr(name, data)
 
-    print(f"Created {archive} with {len(entries)} files (NCore + 4 optional modules)")
+    print(f"Created {archive} with {len(entries)} files (NCore + 5 optional modules)")
     return archive
 
 
