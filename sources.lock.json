@@ -1,0 +1,27 @@
+{
+  "DungeonJournal": {
+    "commit": "a35e4404b421228d6b881a674a62d2167bf6187f",
+    "repository": "CosmicCuddle/N-Dungeon-Journal",
+    "version": "0.6.1"
+  },
+  "IndividualProgressionAddon": {
+    "commit": "6872cc726052f7d271a28ba48baa9bb5c7ad36e9",
+    "repository": "CosmicCuddle/Individual-Progression-Companion",
+    "version": "5.2.0"
+  },
+  "MultiBot": {
+    "commit": "d1606832a083ebf660d67b629b07207b184590dd",
+    "repository": "CosmicCuddle/N-MultiBot-Chatless",
+    "version": "4.0"
+  },
+  "NClassicBattlegrounds": {
+    "commit": "74e45933454385b3b1168bf2c03da34ee1027985",
+    "repository": "CosmicCuddle/N-ClassicBattlegrounds",
+    "version": "1.0.0"
+  },
+  "NaxxLootLottery": {
+    "commit": "7169f5d7b8e959d1f0b86f9b7f98913d5288b1bb",
+    "repository": "CosmicCuddle/N-Loot-Ledger",
+    "version": "0.1.0.27"
+  }
+}
