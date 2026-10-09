@@ -3,9 +3,10 @@
 
 v2 design:
 - NCore always loads Classic Battlegrounds (embedded, no independent toggle).
-- Four optional addons retain their original folders/TOCs/SavedVariables.
-- Original source snapshots remain untouched under addons/.
-- A normal install ZIP contains NCore + four optional addon folders.
+- Five optional addons retain their original folders/TOCs/SavedVariables.
+- Four original snapshots remain under addons/, while Talent Calculator comes
+  from its own checksum/commit-pinned canonical source checkout.
+- A normal install ZIP contains NCore + five optional addon folders.
 """
 import argparse
 import json
@@ -18,12 +19,14 @@ ROOT = Path(__file__).resolve().parents[1]
 CORE = ROOT / "suite" / "NCore"
 SNAPSHOTS = ROOT / "addons"
 MANDATORY = "NClassicBattlegrounds"
-SUITE_OPTIONAL = "NTalentCalculator"
+EXTERNAL = "NTalentCalculator"
+EXTERNAL_SOURCE = ROOT / "external" / "N-Talent-Calculator-" / "NTalentCalculator"
 OPTIONAL = (
     "IndividualProgressionAddon",
     "DungeonJournal",
     "MultiBot",
     "NaxxLootLottery",
+    EXTERNAL,
 )
 SUITE_PREFIX = "N-Addon-Collection"
 
@@ -106,6 +109,12 @@ def addon_toc_with_dependency(source):
             lines[index] = f"## Dependencies: {', '.join(parts)}\n"
             return "".join(lines).encode("utf-8")
 
+    # Standalone calculator marks NCore optional, while the suite always
+    # requires its manager. Preserve all unrelated optional dependencies.
+    lines = [
+        line for line in lines
+        if not re.match(r"^##\\s*OptionalDeps:\\s*NCore\\s*$", line.strip(), re.I)
+    ]
     lines.insert(1, "## Dependencies: NCore\n")
     return "".join(lines).encode("utf-8")
 
@@ -125,12 +134,6 @@ def make_version_manifest(lock):
         if not re.fullmatch(r"v?[0-9]+(?:\.[0-9]+)*(?:[-_][A-Za-z0-9.-]+)?", version):
             raise ValueError(f"Unsafe or unknown addon version for {folder}: {version}")
         lines.append(f"    [{json.dumps(folder)}] = {json.dumps(version)},")
-    local_toc = (ROOT / "suite" / "NTalentCalculator" /
-                 "NTalentCalculator.toc").read_text(encoding="utf-8")
-    found = re.search(r"^##\s*Version:\s*([^\r\n]+)", local_toc, re.M)
-    if not found:
-        raise ValueError("The talent calculator TOC has no version")
-    lines.append(f'    ["NTalentCalculator"] = {json.dumps(found.group(1).strip())},')
     lines.append("}")
     return ("\n".join(lines) + "\n").encode("utf-8")
 
@@ -143,7 +146,9 @@ def build(version, output_dir):
     lock = json.loads(lockfile.read_text(encoding="utf-8"))
     expected = set(OPTIONAL) | {MANDATORY}
     if set(config) != expected or set(lock) != expected:
-        raise ValueError("The source configuration and lock must contain the five approved addons")
+        raise ValueError("The source configuration and lock must contain the six approved addon sources")
+    if config[EXTERNAL]["repository"] != lock[EXTERNAL]["repository"]:
+        raise ValueError("The external calculator source and pin disagree")
     if not (CORE / "NCore.toc").is_file():
         raise ValueError("Missing NCore manifest")
 
@@ -167,10 +172,29 @@ def build(version, output_dir):
 
     for addon in OPTIONAL:
         details = config[addon]
-        folder = SNAPSHOTS / addon
+        folder = EXTERNAL_SOURCE if addon == EXTERNAL else SNAPSHOTS / addon
         toc = details["toc"]
         if not (folder / toc).is_file():
             raise ValueError(f"Missing optional addon manifest: {addon}/{toc}")
+
+        if addon == EXTERNAL:
+            # CI checks out an exact pinned *commit*, never floating main.
+            repository_root = folder.parent
+            git_path = repository_root / ".git"
+            if git_path.exists():
+                import subprocess
+                checkout_sha = subprocess.check_output(
+                    ["git", "-C", str(repository_root), "rev-parse", "HEAD"],
+                    text=True
+                ).strip()
+                if checkout_sha != lock[addon]["commit"]:
+                    raise ValueError("Talent Calculator checkout does not match approved source commit")
+            external_toc = (folder / toc).read_text(encoding="utf-8-sig")
+            match = re.search(r"^##\\s*Version:\\s*(.+)$", external_toc, re.M)
+            if not match or match.group(1).strip() != lock[addon]["version"]:
+                raise ValueError("Standalone Talent Calculator version does not match lock")
+            if not (folder / "Data.lua").is_file():
+                raise ValueError("Missing checksum-verified Talent Calculator data; run its source generator")
 
         for source, relative in iter_files(folder):
             arcname = f"{addon}/{relative}"
@@ -178,20 +202,6 @@ def build(version, output_dir):
             if relative == toc:
                 data = addon_toc_with_dependency(data)
             entries[arcname] = data
-
-    # Suite-maintained optional Talent Calculator lives inside this repository.
-    # Its DBC snapshot is generated at CI/build time from the pinned website
-    # calculator. Original source repositories and DBCs are not modified.
-    talent_folder = ROOT / "suite" / SUITE_OPTIONAL
-    talent_manifest = talent_folder / "NTalentCalculator.toc"
-    talent_data = talent_folder / "Data.lua"
-    if not talent_manifest.is_file() or not talent_data.is_file():
-        raise ValueError(
-            "Missing generated talent data; first run "
-            "scripts/build_talent_data.py with the pinned Resource Hub checkout"
-        )
-    for source, relative in iter_files(talent_folder):
-        entries[f"{SUITE_OPTIONAL}/{relative}"] = source.read_bytes()
 
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
