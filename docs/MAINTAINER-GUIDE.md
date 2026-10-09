@@ -12,16 +12,11 @@ The shorter repository names are now active: `N-Dungeon-Journal`, `N-MultiBot-Ch
 
 **Never change addon folder names, `.toc` filenames, Lua identifiers, or SavedVariables when merely renaming a GitHub repository.**
 
-## First import
+## First import (completed)
 
-1. Review and merge the setup pull request.
-2. The initial bootstrap workflow runs on that merge and stages the five addon sources in `staging/initial-addon-snapshots`. If needed, trigger **Actions → Bootstrap first addon snapshots → Run workflow**.
-3. Review the import branch through a pull request. The script uses the sources' current `main` revisions, verified against their latest release tags.
-4. Check the five addon folders and the exact source commits in `sources.lock.json`.
-5. When satisfied, merge the first import pull request. For this initial publication only, the merge commit title `release: N Addon Collection v1.0.0-rc.1` triggers creation of a public **pre-release** ZIP; no later publication happens without another explicit action.
+The initial five-source snapshot import was reviewed and merged as pull request #2. Source SHAs and versions are saved in `sources.lock.json`. The original collection candidate `v1.0.0-rc.1` is kept for historical rollback. The regular release is `v1.0.0`, with the **same addon snapshots** and a clear disclaimer about individual WIP projects.
 
-The five addon folders will appear under `addons/`. Their names are the exact directories needed inside WoW's `Interface/AddOns/` directory.
-
+The collection itself is not a pre-release merely because one included addon is WIP. Always describe unfinished or untested functionality accurately in the release notes and README.
 ### GitHub workflow permission
 
 The staging workflow needs **Contents: read/write** and **Pull requests: read/write** permissions for the automatically supplied `GITHUB_TOKEN`. If GitHub disallows creating pull requests, review **Settings → Actions → General → Workflow permissions** and enable **Allow GitHub Actions to create and approve pull requests** (subject to account policies). Do not supply a personal access token unless necessary.
@@ -42,9 +37,9 @@ The staging workflow needs **Contents: read/write** and **Pull requests: read/wr
 2. Enter a unique collection version, for example `v1.0.0`.
 3. Leave **publish_release** unchecked first. The workflow uploads a downloadable test ZIP in its run artifacts.
 4. Verify that the ZIP opens with exactly these top-level folders: `IndividualProgressionAddon/`, `DungeonJournal/`, `MultiBot/`, `NaxxLootLottery/`, `NClassicBattlegrounds/`.
-5. If satisfied, run again with **publish_release** checked. Keep **prerelease** enabled for a collection that includes unfinished or unverified features.
+5. If satisfied, run again with **publish_release** checked. Keep **prerelease** unchecked for normal collection releases. Mark individual addons' unfinished or unverified features prominently in the release notes. Enable the pre-release option only when the collection package itself is experimental.
 
-For the initial import we use `v1.0.0-rc.1` as an explicitly labelled pre-release because Loot Ledger and certain other features still require testing. Future releases are manually triggered. Releases use a separate **collection version**. Individual addons keep the versions written in their own TOC files; `sources.lock.json` records the source SHA and addon version.
+The first normal collection release is `v1.0.0`, promoted from the earlier candidate build. Future releases are manually triggered. Releases use a separate **collection version**. Individual addons keep the versions written in their own TOC files; `sources.lock.json` records the source SHA and addon version.
 
 ## Backup and undo
 
@@ -64,4 +59,4 @@ Retain Dungeon Journal's `LICENSE-GPL-2.0.txt` and `CREDITS.txt`, and MultiBot's
 - Individual Progression Companion is designed for the customised Naxxramas/AzerothCore progression rules.
 - MultiBot Chatless requires the corresponding server-side bridge for bridge functions and Naxxramas Core for its custom bot consumables integration.
 - Naxxramas Loot Ledger remains in development; testing of its full real loot-awarding workflow must continue before calling it stable.
-- N Classic Battlegrounds v1.0.0 is released and provides client-side interface control only; it **does not** enforce server queue restrictions. Additional era-specific client tests and optional server-side Battlemaster testing remain outstanding. Do not mark stable until verified.
+- N Classic Battlegrounds v1.0.0 is released and provides client-side interface control only; it **does not** enforce server queue restrictions. Additional era-specific client tests and optional server-side Battlemaster testing remain outstanding; document those limitations in each relevant release.
