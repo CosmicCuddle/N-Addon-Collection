@@ -1,0 +1,53 @@
+# N Addon Suite v2 — alpha migration and test plan
+
+**Development branch only. Do not replace the public v1.0.0 release until gameplay checks pass.**
+
+## Goal
+
+One downloadable ZIP containing exactly five WoW addon folders: `NCore/` plus the four optional addons `IndividualProgressionAddon/`, `DungeonJournal/`, `MultiBot/`, and `NaxxLootLottery/`.
+
+`NCore` **always includes N Classic Battlegrounds**. There is no standalone `NClassicBattlegrounds/` directory in the v2 ZIP and no Battlegrounds toggle in the manager. The original fifth source repository remains the canonical development home for Battlegrounds, with its code adapted only while packaging.
+
+## Backup before testing
+
+1. Close the WoW 3.3.5a client.
+2. Copy your complete `Interface/AddOns/` directory and the relevant account/character `WTF/` SavedVariables directory to a dated backup.
+3. Specifically preserve any old `NClassicBattlegrounds`, `NaxxramasClassicBattlegrounds` or `N-ClassicBattlegrounds` folder and the related character `NClassicBattlegrounds.lua` SavedVariables file.
+4. Keep the [v1.0.0 public collection release](https://github.com/CosmicCuddle/N-Addon-Collection/releases/tag/v1.0.0) available for rollback.
+
+## Install the v2 test ZIP
+
+1. Download the ZIP artifact from the GitHub Actions **Validate collection** run for this development pull request. It is a test build, **not a public release**.
+2. Close WoW and remove/relocate the **old standalone Battlegrounds addon folder**. Running the old addon and embedded suite version together is unsupported: both register `/ncbg` and PvP hooks.
+3. Extract `NCore/`, `IndividualProgressionAddon/`, `DungeonJournal/`, `MultiBot/`, and `NaxxLootLottery/` directly into `World of Warcraft/Interface/AddOns/`.
+4. Check `Interface/AddOns/NCore/NCore.toc` and `Interface/AddOns/NCore/ClassicBattlegrounds/NClassicBattlegrounds.lua` exist. Do not create an extra outer collection folder.
+
+## Functional tests
+
+- [ ] WoW 3.3.5a shows **N Addon Suite** and the four optional addons in the character-selection AddOns list.
+- [ ] Login succeeds with all modules enabled and **no Lua errors**; existing addon windows, commands and SavedVariables remain unchanged.
+- [ ] `/nsettings` and `/nsuite` show a draggable N Suite settings window.
+- [ ] N Classic Battlegrounds displays as **ALWAYS ON** and has **no toggle**.
+- [ ] `/ncbg status` and `/ncbg refresh` work; `/ncbg off` reports mandatory integration and does not disable the feature.
+- [ ] In Vanilla progression, appropriate battleground and arena sections hide, and Battlemaster NPC queues still work.
+- [ ] In TBC progression, Arena controls return but remote BG tab and Wintergrasp remain restricted visually.
+- [ ] In WotLK progression, Battleground tab and Wintergrasp are restored as intended.
+- [ ] Disable only Dungeon Journal using suite settings; click **Reload UI**. Its code does not load, while NCore and Classic Battlegrounds still run.
+- [ ] Re-enable Dungeon Journal, reload, and verify it works and the user's settings are retained.
+- [ ] Repeat enable/disable and reload for Individual Progression, MultiBot, and Loot Ledger.
+- [ ] Verify Loot Ledger UI and 40-character simulator if its optional module is enabled; do not treat real loot awarding as production-ready.
+- [ ] Check UI accessibility at common WoW screen resolutions and UIScale levels.
+
+**Important limitations:** A Lua addon cannot prevent users from disabling the *entire* `NCore` addon or modifying their client. Battleground queue restrictions require properly tested server-side enforcement. Individual addons cannot safely be *unloaded live* in WoW 3.3.5a, so changes take effect only after Reload UI. The original Battlegrounds per-character enabled flag is not migrated (and cannot disable the required core feature).
+
+## Rollback
+
+1. Exit WoW.
+2. Remove the v2 `NCore` directory and all four suite-provided optional addon folders.
+3. Restore the backed-up v1 addon directories, including standalone `NClassicBattlegrounds/` if it was previously installed.
+4. Restore `WTF` SavedVariables only if necessary (keep a copy of newer user data before overwriting).
+5. Restart the client and check each addon.
+
+## Maintenance
+
+All five original repositories remain separate development sources. A future collection import pins the newly approved source commits under `addons/`, and a test ZIP is built from those snapshots. Because the embedded Classic BG code requires deterministic adapter rules, a changed upstream Lua structure will cause packaging to fail rather than silently breaking mandatory behavior. All packaged optional `.toc` files receive the `NCore` dependency **inside the ZIP only**, keeping their original GitHub projects independently installable.
