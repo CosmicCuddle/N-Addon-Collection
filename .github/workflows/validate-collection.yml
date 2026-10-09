@@ -35,6 +35,7 @@ jobs:
           set -euo pipefail
           luac5.1 -p suite/NCore/Core.lua suite/NCore/Settings.lua
           lua5.1 scripts/test_suite_core.lua
+          lua5.1 scripts/test_suite_settings.lua
           python3 - <<'PY'
           import subprocess
           import tempfile
