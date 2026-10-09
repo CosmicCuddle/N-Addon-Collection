@@ -46,15 +46,42 @@ jobs:
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-      - name: Check out approved server talent data
+      - name: Resolve reviewed Talent Calculator commit
+        id: talent_pin
+        run: |
+          python3 - <<'PY'
+          import json, os
+          lock = json.load(open('sources.lock.json', encoding='utf-8'))['NTalentCalculator']
+          assert lock['repository'] == 'CosmicCuddle/N-Talent-Calculator-'
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as output:
+              print('sha=' + lock['commit'], file=output)
+          PY
+      - name: Checkout approved standalone Talent Calculator
+        uses: actions/checkout@v4
+        with:
+          repository: CosmicCuddle/N-Talent-Calculator-
+          ref: ${{ steps.talent_pin.outputs.sha }}
+          path: external/N-Talent-Calculator-
+          persist-credentials: false
+      - name: Resolve approved website DBC snapshot
+        id: website_pin
+        run: |
+          python3 - <<'PY'
+          import json, os
+          pin = json.load(open('external/N-Talent-Calculator-/config/talent-data.json', encoding='utf-8'))
+          assert pin['source_repository'] == 'CosmicCuddle/Naxxramas-Resource-Hub'
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as output:
+              print('sha=' + pin['source_commit'], file=output)
+          PY
+      - name: Checkout approved server website talent data
         uses: actions/checkout@v4
         with:
           repository: CosmicCuddle/Naxxramas-Resource-Hub
-          ref: e2e861d05c4f3d13f850886c973cb66bc60cc849
+          ref: ${{ steps.website_pin.outputs.sha }}
           path: talent-source
           persist-credentials: false
-      - name: Generate pinned Lua talent snapshots
-        run: python3 scripts/build_talent_data.py --source talent-source --output suite/NTalentCalculator/Data.lua
+      - name: Build verified Lua talent data with standalone source scripts
+        run: python3 external/N-Talent-Calculator-/scripts/build_talent_data.py --source talent-source --output external/N-Talent-Calculator-/NTalentCalculator/Data.lua
       - name: Build install-ready bundle
         run: python3 scripts/build_bundle.py "$VERSION" dist
       - name: Save downloadable Actions artifact
