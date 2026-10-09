@@ -8,6 +8,8 @@ from build_bundle import (
     MANDATORY,
     OPTIONAL,
     ROOT,
+    EXTERNAL,
+    EXTERNAL_SOURCE,
     addon_toc_with_dependency,
     build,
     embed_classic_battlegrounds,
@@ -49,6 +51,19 @@ class TestSuitePackage(unittest.TestCase):
             self.assertIn("## Dependencies: NCore", text)
             self.assertIn("## Interface: 30300", text)
 
+    def test_talent_module_and_server_dbc_data(self):
+        toc = self.archive.read("NTalentCalculator/NTalentCalculator.toc").decode()
+        self.assertIn("## Dependencies: NCore", toc)
+        self.assertIn("## SavedVariables: NTalentCalculatorDB", toc)
+        self.assertNotIn("## OptionalDeps: NCore", toc)
+        for file in ("Data.lua", "Engine.lua", "Progression.lua", "UI.lua"):
+            self.assertIn(file, toc)
+            self.assertIn("NTalentCalculator/" + file, self.names)
+        source = self.archive.read("NTalentCalculator/Data.lua").decode()
+        self.assertIn("NTalentCalculatorData", source)
+        self.assertIn("sourceCommit", source)
+        self.assertIn("Stormstrike", source)
+
     def test_bg_is_integrated_and_mandatory(self):
         data = self.archive.read(
             "NCore/ClassicBattlegrounds/NClassicBattlegrounds.lua"
@@ -62,7 +77,7 @@ class TestSuitePackage(unittest.TestCase):
 
     def test_optional_sources_are_untouched(self):
         for addon in OPTIONAL:
-            path = ROOT / "addons" / addon
+            path = EXTERNAL_SOURCE if addon == EXTERNAL else ROOT / "addons" / addon
             lua_paths = list(path.rglob("*.lua"))
             self.assertTrue(lua_paths, addon)
             check = lua_paths[0]
@@ -82,6 +97,10 @@ class TestSuitePackage(unittest.TestCase):
         self.assertIn("NCore.expectedVersions = {", versions)
         for addon in OPTIONAL:
             self.assertIn(f'["{addon}"] = "{lock[addon]["version"]}"', versions)
+        self.assertIn(
+            f'["NTalentCalculator"] = "{lock["NTalentCalculator"]["version"]}"',
+            versions,
+        )
         self.assertNotIn("NClassicBattlegrounds", versions)
 
     def test_original_saved_variables_preserved(self):

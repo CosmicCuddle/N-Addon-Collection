@@ -46,6 +46,42 @@ jobs:
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+      - name: Resolve reviewed Talent Calculator commit
+        id: talent_pin
+        run: |
+          python3 - <<'PY'
+          import json, os
+          lock = json.load(open('sources.lock.json', encoding='utf-8'))['NTalentCalculator']
+          assert lock['repository'] == 'CosmicCuddle/N-Talent-Calculator-'
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as output:
+              print('sha=' + lock['commit'], file=output)
+          PY
+      - name: Checkout approved standalone Talent Calculator
+        uses: actions/checkout@v4
+        with:
+          repository: CosmicCuddle/N-Talent-Calculator-
+          ref: ${{ steps.talent_pin.outputs.sha }}
+          path: external/N-Talent-Calculator-
+          persist-credentials: false
+      - name: Resolve approved website DBC snapshot
+        id: website_pin
+        run: |
+          python3 - <<'PY'
+          import json, os
+          pin = json.load(open('external/N-Talent-Calculator-/config/talent-data.json', encoding='utf-8'))
+          assert pin['source_repository'] == 'CosmicCuddle/Naxxramas-Resource-Hub'
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as output:
+              print('sha=' + pin['source_commit'], file=output)
+          PY
+      - name: Checkout approved server website talent data
+        uses: actions/checkout@v4
+        with:
+          repository: CosmicCuddle/Naxxramas-Resource-Hub
+          ref: ${{ steps.website_pin.outputs.sha }}
+          path: talent-source
+          persist-credentials: false
+      - name: Build verified Lua talent data with standalone source scripts
+        run: python3 external/N-Talent-Calculator-/scripts/build_talent_data.py --source talent-source --output external/N-Talent-Calculator-/NTalentCalculator/Data.lua
       - name: Build install-ready bundle
         run: python3 scripts/build_bundle.py "$VERSION" dist
       - name: Save downloadable Actions artifact
@@ -81,6 +117,7 @@ jobs:
           print('The collection itself is a standard release; inclusion does not mean every individual addon is feature-complete.')
           print('N Classic Battlegrounds v1.0.0 has further progression-transition and optional server-side rules testing outstanding.')
           print('MultiBot bridge and Naxxramas server features require the corresponding server modules.')
+          print('N Talent Calculator uses the October 2026 custom DBC-derived website snapshot; it is a planning tool and does not spend live talent points.')
           PY
           extra=()
           if [[ "$PRERELEASE" == 'true' ]]; then extra+=(--prerelease); fi

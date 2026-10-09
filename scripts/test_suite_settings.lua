@@ -62,7 +62,8 @@ local modules = {
     {folder="IndividualProgressionAddon",title="Individual Progression",description="Progression guides"},
     {folder="DungeonJournal",title="Dungeon Journal",description="Dungeon and raid guides"},
     {folder="MultiBot",title="MultiBot Chatless",description="Playerbot controls"},
-    {folder="NaxxLootLottery",title="N Loot Ledger",description="WIP loot planning"}
+    {folder="NaxxLootLottery",title="N Loot Ledger",description="WIP loot planning"},
+    {folder="NTalentCalculator",title="Talent Calculator",description="Talent planning"}
 }
 local enabled = {}
 for _, module in ipairs(modules) do enabled[module.folder] = true end
@@ -83,14 +84,14 @@ dofile("suite/NCore/Settings.lua")
 NCore:ToggleSettings()
 local panel = NSuiteSettingsFrame
 assert(panel and panel:IsShown(), "Settings did not open")
-assert(panel.width == 620 and panel.height == 485, "Unexpected window dimensions")
+assert(panel.width == 620 and panel.height == 540, "Unexpected five-module window dimensions")
 assert(panel.scale and panel.scale < 1 and panel.scale > 0.65,
     "Window must automatically fit smaller or high UI-scale viewports")
 assert(panel.backdrop and panel.backdrop.bgFile == "Interface\\Buttons\\WHITE8X8",
     "Window must use an opaque-compatible dark backing")
 assert(panel.backdropColor and panel.backdropColor[4] >= 0.95,
     "Window background is too transparent")
-assert(#controls.checkbuttons == 4, "Only four optional modules may have checkboxes")
+assert(#controls.checkbuttons == 5, "Only five optional modules may have checkboxes")
 assert(panel.notice.text == "Choose modules. Reload after changes.",
     "Compact footer instruction was not rendered")
 assert(panel.reload.disabled == true, "Reload button should initially be disabled")

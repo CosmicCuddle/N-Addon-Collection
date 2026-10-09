@@ -28,5 +28,11 @@
     "branch": "main",
     "source_folder": "NClassicBattlegrounds",
     "toc": "NClassicBattlegrounds.toc"
+  },
+  "NTalentCalculator": {
+    "repository": "CosmicCuddle/N-Talent-Calculator-",
+    "branch": "main",
+    "source_folder": "NTalentCalculator",
+    "toc": "NTalentCalculator.toc"
   }
 }

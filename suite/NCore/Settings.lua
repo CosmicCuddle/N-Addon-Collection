@@ -65,7 +65,7 @@ local function CreatePanel()
 
     panel = CreateFrame("Frame", "NSuiteSettingsFrame", UIParent)
     panel:SetWidth(620)
-    panel:SetHeight(485)
+    panel:SetHeight(540)
     panel:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
     panel:SetFrameStrata("DIALOG")
     panel:SetToplevel(true)
@@ -82,7 +82,7 @@ local function CreatePanel()
         local viewWidth, viewHeight = UIParent:GetWidth(), UIParent:GetHeight()
         if type(viewWidth) == "number" and type(viewHeight) == "number"
            and viewWidth > 100 and viewHeight > 100 then
-            local fit = math.min(1, (viewWidth - 48) / 620, (viewHeight - 48) / 485)
+            local fit = math.min(1, (viewWidth - 48) / 620, (viewHeight - 48) / 540)
             panel:SetScale(math.max(0.65, fit))
         end
     end
@@ -166,8 +166,8 @@ local function CreatePanel()
         rows[index] = { row = row, module = moduleInfo }
     end
 
-    Separator(panel, -419)
-    panel.notice = MakeLabel(panel, "GameFontHighlightSmall", "", 28, -441)
+    Separator(panel, -477)
+    panel.notice = MakeLabel(panel, "GameFontHighlightSmall", "", 28, -499)
     panel.notice:SetWidth(430)
     panel.notice:SetHeight(18)
 

@@ -103,6 +103,14 @@ def stage_one(name, details, requested_ref, lock):
         source = (checkout / details["source_folder"]).resolve()
         if not source.is_dir() or not source.is_relative_to(checkout.resolve()):
             raise ValueError(f"Invalid addon source path: {source}")
+        if name == "NTalentCalculator":
+            # This new canonical addon is fetched by *pinned commit* when
+            # building the collection, rather than mirrored into addons/.
+            # The verified generated DBC data is built with its own scripts.
+            version = validate_toc(source, details["toc"])
+            lock[name] = {"repository": repository, "commit": sha, "version": version}
+            print(f"Pinned external {name} ({version}) at {sha[:12]}")
+            return
         copy_runtime_files(source, stage)
         version = validate_toc(stage, details["toc"])
         destination = ADDONS / name

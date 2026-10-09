@@ -4,7 +4,7 @@
 
 ## Goal
 
-One downloadable ZIP containing exactly five WoW addon folders: `NCore/` plus the four optional addons `IndividualProgressionAddon/`, `DungeonJournal/`, `MultiBot/`, and `NaxxLootLottery/`.
+One downloadable ZIP containing exactly six WoW addon folders: `NCore/` plus five optional addons `IndividualProgressionAddon/`, `DungeonJournal/`, `MultiBot/`, `NaxxLootLottery/`, and `NTalentCalculator/`.
 
 `NCore` **always includes N Classic Battlegrounds**. There is no standalone `NClassicBattlegrounds/` directory in the v2 ZIP and no Battlegrounds toggle in the manager. The original fifth source repository remains the canonical development home for Battlegrounds, with its code adapted only while packaging.
 
@@ -19,7 +19,7 @@ One downloadable ZIP containing exactly five WoW addon folders: `NCore/` plus th
 
 1. Open the GitHub Actions **Validate collection** run linked from this development pull request. Under **Artifacts**, download `n-addon-suite-v2-test`. GitHub wraps the addon package inside a test-artifact ZIP: first open/extract that outer download, then locate `N-Addon-Collection-v2.0.0-alpha.1.zip` inside it. This is **not a public release**.
 2. Close WoW and remove/relocate the **old standalone Battlegrounds addon folder**. Running the old addon and embedded suite version together is unsupported: both register `/ncbg` and PvP hooks.
-3. Open the **inner** `N-Addon-Collection-v2.0.0-alpha.1.zip` and extract its `NCore/`, `IndividualProgressionAddon/`, `DungeonJournal/`, `MultiBot/`, and `NaxxLootLottery/` folders directly into `World of Warcraft/Interface/AddOns/`.
+3. Open the **inner** `N-Addon-Collection-v2.0.0-alpha.1.zip` and extract its `NCore/`, `IndividualProgressionAddon/`, `DungeonJournal/`, `MultiBot/`, and `NaxxLootLottery/`, and `NTalentCalculator/` folders directly into `World of Warcraft/Interface/AddOns/`.
 4. Check `Interface/AddOns/NCore/NCore.toc` and `Interface/AddOns/NCore/ClassicBattlegrounds/NClassicBattlegrounds.lua` exist. Do not create an extra outer collection folder.
 
 ## Automatic older-addon warning
@@ -28,7 +28,7 @@ NCore checks the addon list **silently on each login**. A warning window appears
 
 - `ServerDungeonJournal` (the previous Dungeon Journal folder).
 - `NaxxramasClassicBattlegrounds` or a separate `NClassicBattlegrounds` addon (older/duplicate Classic BG installations).
-- A version older than this collection's pinned `.toc` version for any of the four optional addons.
+- A version older than this collection's pinned `.toc` version for any optional addon.
 
 The expected versions come directly from `sources.lock.json` when the suite package is built. No hardcoded version table needs updating after future approved source imports. Disabled-but-still-installed obsolete addons are also listed so they cannot be accidentally re-enabled.
 
@@ -45,9 +45,19 @@ The warning only *reports* problems; it never deletes folders, modifies SavedVar
 - [ ] With a standalone `NClassicBattlegrounds` folder installed as well as NCore, confirm the duplicate warning appears. Remove the standalone copy before continuing.
 - [ ] Use `/nsuite check` after cleanup to confirm a clean registered addon list.
 - [ ] Check that dismissed warnings do not delete files or erase settings.
+## Talent Calculator specific tests
+
+See [N Talent Calculator Roadmap](N-TALENT-CALCULATOR-ROADMAP.md) for exact era restrictions, server data origin, share-code rules and additional safety checks.
+
+- [ ] `/nsettings` lists Talent Calculator with an enable switch, while Classic Battlegrounds is mandatory.
+- [ ] `/ntalent` displays three era-limited talent trees for the current IP tier, not an unlocked Wrath template.
+- [ ] Vanilla hides side talents on row 7 and everything below; TBC hides side talents on row 9 and everything below.
+- [ ] `/ntalent code` provides a copyable NT1 code; website import accepts that code and its own NT1 codes work in-game.
+- [ ] Custom DBC talent descriptions, ranks, icons and off-centre final capstones display correctly.
+- [ ] `/ntalent` stops working after the optional calculator is disabled and the UI is reloaded.
 ## Functional tests
 
-- [ ] WoW 3.3.5a shows **N Addon Suite** and the four optional addons in the character-selection AddOns list.
+- [ ] WoW 3.3.5a shows **N Addon Suite** and the five optional addons in the character-selection AddOns list.
 - [ ] Login succeeds with all modules enabled and **no Lua errors**; existing addon windows, commands and SavedVariables remain unchanged.
 - [ ] `/nsettings` and `/nsuite` show a draggable N Suite settings window.
 - [ ] N Classic Battlegrounds displays as **ALWAYS ON** and has **no toggle**.
@@ -57,7 +67,7 @@ The warning only *reports* problems; it never deletes folders, modifies SavedVar
 - [ ] In WotLK progression, Battleground tab and Wintergrasp are restored as intended.
 - [ ] Disable only Dungeon Journal using suite settings; click **Reload UI**. Its code does not load, while NCore and Classic Battlegrounds still run.
 - [ ] Re-enable Dungeon Journal, reload, and verify it works and the user's settings are retained.
-- [ ] Repeat enable/disable and reload for Individual Progression, MultiBot, and Loot Ledger.
+- [ ] Repeat enable/disable and reload for Individual Progression, MultiBot, Loot Ledger, and Talent Calculator.
 - [ ] Verify Loot Ledger UI and 40-character simulator if its optional module is enabled; do not treat real loot awarding as production-ready.
 - [ ] Confirm the `/nsettings` panel has a dark, readable background even when a character or bright game scenery is behind it.
 - [ ] Confirm descriptions, enabled labels and the Reload UI footer have no overlap, wrapping into adjacent rows or clipping at the bottom border.
@@ -69,7 +79,7 @@ The warning only *reports* problems; it never deletes folders, modifies SavedVar
 ## Rollback
 
 1. Exit WoW.
-2. Remove the v2 `NCore` directory and all four suite-provided optional addon folders.
+2. Remove the v2 `NCore` directory and all five suite-provided optional addon folders.
 3. Restore the backed-up v1 addon directories, including standalone `NClassicBattlegrounds/` if it was previously installed.
 4. Restore `WTF` SavedVariables only if necessary (keep a copy of newer user data before overwriting).
 5. Restart the client and check each addon.

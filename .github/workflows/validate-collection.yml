@@ -12,6 +12,50 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Resolve approved Talent Calculator source
+        id: talent_pin
+        run: |
+          python3 - <<'PY'
+          import json, os
+          lock = json.load(open('sources.lock.json', encoding='utf-8'))['NTalentCalculator']
+          assert lock['repository'] == 'CosmicCuddle/N-Talent-Calculator-'
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as output:
+              print('sha=' + lock['commit'], file=output)
+          PY
+
+      - name: Check out standalone calculator at approved commit
+        uses: actions/checkout@v4
+        with:
+          repository: CosmicCuddle/N-Talent-Calculator-
+          ref: ${{ steps.talent_pin.outputs.sha }}
+          path: external/N-Talent-Calculator-
+          persist-credentials: false
+
+      - name: Resolve website DBC snapshot pinned by standalone calculator
+        id: website_pin
+        run: |
+          python3 - <<'PY'
+          import json, os
+          config = json.load(open('external/N-Talent-Calculator-/config/talent-data.json', encoding='utf-8'))
+          assert config['source_repository'] == 'CosmicCuddle/Naxxramas-Resource-Hub'
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as output:
+              print('sha=' + config['source_commit'], file=output)
+          PY
+
+      - name: Check out pinned website talent data
+        uses: actions/checkout@v4
+        with:
+          repository: CosmicCuddle/Naxxramas-Resource-Hub
+          ref: ${{ steps.website_pin.outputs.sha }}
+          path: talent-source
+          persist-credentials: false
+
+      - name: Generate verified custom DBC data using original addon scripts
+        run: |
+          python3 external/N-Talent-Calculator-/scripts/build_talent_data.py --source talent-source --output external/N-Talent-Calculator-/NTalentCalculator/Data.lua
+
+      - name: Check independent talent data configuration
+        run: python3 -m json.tool external/N-Talent-Calculator-/config/talent-data.json > /dev/null
       - name: Check Python syntax
         run: python3 -m compileall -q scripts
       - name: Validate source config
@@ -34,9 +78,14 @@ jobs:
         run: |
           set -euo pipefail
           luac5.1 -p suite/NCore/Core.lua suite/NCore/Settings.lua suite/NCore/LegacyCheck.lua
+          luac5.1 -p external/N-Talent-Calculator-/NTalentCalculator/Data.lua external/N-Talent-Calculator-/NTalentCalculator/Engine.lua external/N-Talent-Calculator-/NTalentCalculator/Progression.lua external/N-Talent-Calculator-/NTalentCalculator/UI.lua
           lua5.1 scripts/test_suite_core.lua
           lua5.1 scripts/test_suite_settings.lua
           lua5.1 scripts/test_suite_legacy.lua
+          (cd external/N-Talent-Calculator- && lua5.1 tests/test_talent_engine.lua)
+          (cd external/N-Talent-Calculator- && lua5.1 tests/test_talent_dataset.lua)
+          (cd external/N-Talent-Calculator- && lua5.1 tests/test_talent_ui.lua)
+          (cd external/N-Talent-Calculator- && lua5.1 tests/test_talent_progression.lua)
           python3 - <<'PY'
           import subprocess
           import tempfile

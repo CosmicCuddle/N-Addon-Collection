@@ -3,7 +3,7 @@
 
 local installed = {
     "NCore", "IndividualProgressionAddon", "DungeonJournal",
-    "MultiBot", "NaxxLootLottery"
+    "MultiBot", "NaxxLootLottery", "NTalentCalculator"
 }
 local enabled = {}
 for i = 1, #installed do enabled[i] = 1 end
@@ -21,7 +21,7 @@ function InCombatLockdown() return false end
 function ReloadUI() _G.__reloaded = true end
 
 dofile("suite/NCore/Core.lua")
-assert(#NCore.modules == 4, "Expected exactly four optional modules")
+assert(#NCore.modules == 5, "Expected exactly five optional modules")
 assert(NCore:FindIndex("NCore") == 1, "Missing core")
 assert(NCore:FindIndex("NClassicBattlegrounds") == nil, "BG must be embedded, not standalone")
 
