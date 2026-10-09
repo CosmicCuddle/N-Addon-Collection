@@ -5,5 +5,7 @@
 ## Version: 2.0.0-alpha.1
 
 Core.lua
+ExpectedVersions.lua
 ClassicBattlegrounds\NClassicBattlegrounds.lua
 Settings.lua
+LegacyCheck.lua
