@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Collection version, e.g. v1.0.0-rc.1
+        description: Collection version, e.g. v1.0.0
         required: true
         type: string
       publish_release:
@@ -16,7 +16,7 @@ on:
         description: Mark the GitHub Release as a pre-release?
         type: boolean
         required: true
-        default: true
+        default: false
   push:
     branches:
       - main
@@ -26,7 +26,7 @@ permissions:
 
 jobs:
   bundle:
-    if: "${{ github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'release: N Addon Collection v1.0.0-rc.1') }}"
+    if: "${{ github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'release: N Addon Collection v1.0.0') }}"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,7 +36,7 @@ jobs:
           INPUT_VERSION: ${{ inputs.version }}
         run: |
           if [[ "$GITHUB_EVENT_NAME" == 'push' ]]; then
-            VERSION='v1.0.0-rc.1'
+            VERSION='v1.0.0'
           else
             VERSION="$INPUT_VERSION"
           fi
@@ -76,10 +76,12 @@ jobs:
           print('Back up existing addon folders and `WTF` SavedVariables first.')
           print('Extract the ZIP directly into `World of Warcraft/Interface/AddOns/` (no extra collection folder).')
           print('\n## Testing status\n')
-          print('**Collection pre-release.** N Loot Ledger remains in development; real loot awards require controlled server testing.')
+          print('**N Loot Ledger (v0.1.0.27) is a work in progress and is not fully complete.**')
+          print('Some features, including real Master Loot awarding, still require controlled in-game and server testing.')
+          print('The collection itself is a standard release; inclusion does not mean every individual addon is feature-complete.')
           print('N Classic Battlegrounds v1.0.0 has further progression-transition and optional server-side rules testing outstanding.')
           print('MultiBot bridge and Naxxramas server features require the corresponding server modules.')
           PY
           extra=()
-          if [[ "$GITHUB_EVENT_NAME" == 'push' || "$PRERELEASE" == 'true' ]]; then extra+=(--prerelease); fi
+          if [[ "$PRERELEASE" == 'true' ]]; then extra+=(--prerelease); fi
           gh release create "$VERSION" "dist/N-Addon-Collection-$VERSION.zip" --target "$GITHUB_SHA" --title "N Addon Collection $VERSION" --notes-file release-notes.txt "${extra[@]}"
