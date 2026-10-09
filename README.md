@@ -2,7 +2,7 @@
 
 **WoW 3.3.5a (client build 12340; Interface 30300)** addons for the Naxxramas AzerothCore server.
 
-**Repository renames completed:** The GitHub repositories use their shorter `N-` names. WoW addon folders and SavedVariables keep their existing compatible names. The setup pull request is pending review.
+**The collection is a normal release.** Some individual addons may still be works in progress. In particular, **N Loot Ledger v0.1.0.27 is WIP, not fully complete, and its real Master Loot awarding remains subject to further server testing.** Its inclusion does not mean that every Loot Ledger feature is production-ready.
 
 This is a **curated, manually approved collection**. Development remains in each original repository. Changes do not appear here until the collection owner reviews and merges an import pull request.
 
@@ -20,7 +20,7 @@ This is a **curated, manually approved collection**. Development remains in each
 
 ## Download and install
 
-Once the first reviewed import and bundle are published, download the ZIP from [Releases](https://github.com/CosmicCuddle/N-Addon-Collection/releases). It contains the five addon folders directly at the ZIP root.
+**Latest collection release: [v1.0.0](https://github.com/CosmicCuddle/N-Addon-Collection/releases/tag/v1.0.0)** — contains the five addon folders directly at the ZIP root. The earlier `v1.0.0-rc.1` pre-release remains available in [release history](https://github.com/CosmicCuddle/N-Addon-Collection/releases) for comparison and rollback.
 
 1. Exit World of Warcraft.
 2. **Back up** any existing addon folders under `World of Warcraft/Interface/AddOns/` and the corresponding `WTF` SavedVariables files.
@@ -43,7 +43,7 @@ Do **not** install an extra `N-Addon-Collection` folder around the five addons. 
 4. Merge only when satisfied. Nothing is automatically copied from source changes.
 5. To create a downloadable ZIP, run **Actions → Build or publish addon bundle**. A test artifact can be built without publishing a release; publication requires choosing `publish_release` explicitly.
 
-The first import is also manual: the repository will not contain runtime addon files until an import pull request has been reviewed and merged.
+The initial import has been completed and reviewed. All five runtime addon folders are now stored under [`addons/`](addons/), with their exact source revisions recorded in [`sources.lock.json`](sources.lock.json).
 
 See [Maintainer Guide](docs/MAINTAINER-GUIDE.md) for steps, workflow permissions, backups, rollback, and publishing.
 
