@@ -32,13 +32,14 @@ NCore checks the addon list **silently on each login**. A warning window appears
 
 The expected versions come directly from `sources.lock.json` when the suite package is built. No hardcoded version table needs updating after future approved source imports. Disabled-but-still-installed obsolete addons are also listed so they cannot be accidentally re-enabled.
 
-The warning only *reports* problems; it never deletes folders, modifies SavedVariables or disables addons. **Close the game**, back up the flagged addon folders, and move obsolete copies **outside** `Interface/AddOns`. Then launch WoW again. Use `/nsuite check` to manually rescan at any time. A clean install shows no popup. `/nsuite status` continues to provide module diagnostics.
+The warning only *reports* problems; it never deletes folders, modifies SavedVariables or disables addons. **Close the game**, back up the flagged addon folders, and move obsolete copies **outside** `Interface/AddOns`. Then launch WoW again. Use `/nsuite check` to manually rescan at any time. Use `/nsuite check demo` to preview the warning safely without installing an old addon; it clearly says **Example warning**. A clean install shows no popup. `/nsuite status` continues to provide module diagnostics.
 
 **Limit:** WoW 3.3.5a cannot enumerate arbitrary files from Lua. Files or folders that WoW does not register as an addon (for example a renamed backup with no matching `.toc`) cannot be detected. An addon with no readable version metadata cannot reliably be identified as outdated, though known legacy folder names can still be detected.
 
 ### Older-version detection tests
 
 - [ ] With only the five suite folders installed, log in: **no warning** appears.
+- [ ] Type `/nsuite check demo` to preview an obviously simulated warning. Dismiss it and verify nothing was disabled or deleted.
 - [ ] Add a backed-up copy of `ServerDungeonJournal` with its original valid `.toc`, log in: the warning names that old folder.
 - [ ] Remove it, leaving only current `DungeonJournal`: the warning disappears on next login.
 - [ ] With a standalone `NClassicBattlegrounds` folder installed as well as NCore, confirm the duplicate warning appears. Remove the standalone copy before continuing.
