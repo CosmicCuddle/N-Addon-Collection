@@ -30,12 +30,12 @@ class TestAddonImport(unittest.TestCase):
             self.assertFalse((destination / ".github").exists())
             self.assertFalse((destination / "tests").exists())
 
-    def test_collection_contains_five_correct_addon_folders(self):
+    def test_collection_contains_six_approved_source_repositories(self):
         config = json.loads(CONFIG.read_text(encoding="utf-8"))
         validate_config(config)
         expected = {
             "IndividualProgressionAddon", "DungeonJournal", "MultiBot",
-            "NaxxLootLottery", "NClassicBattlegrounds"
+            "NaxxLootLottery", "NClassicBattlegrounds", "NTalentCalculator"
         }
         self.assertEqual(set(config), expected)
         self.assertEqual(
