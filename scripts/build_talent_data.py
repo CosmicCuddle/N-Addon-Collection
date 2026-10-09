@@ -29,7 +29,24 @@ def read_blob(path, expected_sha):
 
 
 def lua_string(value):
-    return json.dumps(value, ensure_ascii=True)
+    """Quote UTF-8 and control characters in syntax valid for Lua 5.1."""
+    escaped = []
+    for char in value:
+        if char == "\\":
+            escaped.append("\\\\")
+        elif char == '"':
+            escaped.append('\\"')
+        elif char == "\n":
+            escaped.append("\\n")
+        elif char == "\r":
+            escaped.append("\\r")
+        elif char == "\t":
+            escaped.append("\\t")
+        elif ord(char) < 32:
+            escaped.append("\\%03d" % ord(char))
+        else:
+            escaped.append(char)
+    return '"' + "".join(escaped) + '"'
 
 
 def lua_value(value):
