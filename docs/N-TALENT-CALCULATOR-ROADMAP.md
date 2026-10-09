@@ -2,9 +2,9 @@
 
 ## Why this is server-specific
 
-The public website calculator at `CosmicCuddle/Naxxramas-Resource-Hub/talents/` is the source of truth. Its compressed `Talent.dbc`, `TalentTab.dbc`, `Spell.dbc` and `SpellIcon.dbc` derivatives come from the customized Naxxramas 3.3.5a server snapshot supplied on 8 October 2026: 830 talents, 30 trees, 10 classes, including custom Rend Flurry (Talent ID 3000). The suite pins an **exact website Git commit and two Git blob SHAs** in `config/talent-data.json`. During CI, `scripts/build_talent_data.py` converts those snapshots into a local Lua 5.1 data file without touching any live DB/DBC/server files.
+The independent [N Talent Calculator repository](https://github.com/CosmicCuddle/N-Talent-Calculator-) is now the **canonical Lua source**; the public website calculator at `CosmicCuddle/Naxxramas-Resource-Hub/talents/` is the approved DBC data source. Its compressed `Talent.dbc`, `TalentTab.dbc`, `Spell.dbc` and `SpellIcon.dbc` derivatives come from the customized Naxxramas 3.3.5a server snapshot supplied on 8 October 2026: 830 talents, 30 trees, 10 classes, including custom Rend Flurry (Talent ID 3000). The **standalone calculator repository** pins the website Git commit and blob hashes in its own `config/talent-data.json`. The collection pins the independent calculator's exact commit in `sources.lock.json` and checks it out in CI. Its own generator produces verified Lua 5.1 DBC data offline without touching any live DB/DBC/server files.
 
-**No live web requests inside the game.** The generated `Data.lua` lives in the installable ZIP. Approve upstream DBC edits via the website repository before explicitly updating the pinned commit and checksums.
+**No live web requests inside the game.** The generated `Data.lua` lives in the installable ZIP. Approve upstream DBC edits via the website repository first, update the canonical calculator's pins and release, and only then stage the new calculator commit through the collection's approved import workflow.
 
 ## Era rules copied from the website
 
@@ -27,11 +27,11 @@ Preserve off-centre capstone exceptions from the exact DBC: Shaman Stormstrike `
 
 ## In-game interface
 
-The `NTalentCalculator` folder is an independent **optional module** in N Addon Suite. It depends on NCore, is enabled/disabled from `/nsettings` with Reload UI, and does not affect mandatory Classic Battlegrounds.
+The `NTalentCalculator` folder is an independently installable addon and an **optional module** in N Addon Suite. Its own repository declares NCore as an optional dependency; the collection makes NCore required in its packaged copy, for the `/nsettings` manager. Classic Battlegrounds remains mandatory in NCore.
 
 Commands: `/ntalent` or `/ntc` opens the planner; `/ntalent refresh` requests IP state again; `/ntalent code` selects the current build string for Ctrl+C; `/ntalent import NT1:...`; `/ntalent save NAME`; `/ntalent load NAME`.
 
-The calculator shows three talent trees for the selected class (all 10 classes supported; Death Knight only in WotLK), visible talent icons, rank-specific server tooltip text, spent points and a share-code input. Left-click adds a talent rank; right-click removes one. It **never trains or refunds actual talents**. The selected level is the era's level cap for website parity, even if the character is currently lower.
+The calculator shows three talent trees for the selected class (all 10 classes supported; Death Knight only in WotLK), visible talent icons, rank-specific server tooltip text, spent points and a share-code input. Left-click adds a talent rank; right-click removes one. It **never trains or refunds actual talents**. The prototype currently plans at the era's maximum level for website parity. Additional UI controls for planning lower-level builds can be added after testing.
 
 ### Share-code compatibility
 
@@ -41,7 +41,7 @@ WoW 3.3.5a provides no safe clipboard-write API. **Show code** selects the strin
 
 ## Backups and client testing
 
-1. Preserve the original public collection **v1.0.0** and your working v2 prototype. Back up `Interface/AddOns/` and the appropriate `WTF/SavedVariables` files before testing.
+1. Preserve the public collection **v1.0.0** and your working v2 prototype. Back up `Interface/AddOns/NTalentCalculator/`, `Interface/AddOns/NCore/`, and the relevant `WTF/SavedVariables` files before testing.
 2. Obtain the test ZIP from the GitHub Actions check on the talent-calculator pull request. It includes **NCore plus five optional folders**. Extract the inner collection ZIP into `Interface/AddOns/`.
 3. Do not install the old `NClassicBattlegrounds` folder alongside NCore; remove obsolete `ServerDungeonJournal` to avoid duplicates.
 4. Verify `/nsettings` shows Talent Calculator as optional and Classic Battlegrounds remains required.
