@@ -143,6 +143,7 @@ local function CreateWarningFrame()
     local title = AddLabel(frame, "GameFontNormalLarge",
         "N Addon Suite - Older addons detected", 29, -27, 510)
     title:SetTextColor(1, 0.76, 0.38)
+    frame.title = title
 
     AddLabel(frame, "GameFontHighlightSmall",
         "An older or duplicate addon may still load alongside the suite.",
@@ -179,9 +180,11 @@ local function CreateWarningFrame()
     return frame
 end
 
-function Suite:ShowLegacyWarning(issues)
+function Suite:ShowLegacyWarning(issues, isDemo)
     if type(issues) ~= "table" or #issues == 0 then return false end
     local frame = CreateWarningFrame()
+    frame.title:SetText(isDemo and "N Addon Suite - Example warning" or
+        "N Addon Suite - Older addons detected")
     for i = 1, #frame.lines do
         local issue = issues[i]
         local text = issue and (issue.folder .. ": " .. issue.detail) or ""
@@ -195,6 +198,17 @@ function Suite:ShowLegacyWarning(issues)
     end
     frame:Show()
     return true
+end
+
+function Suite:ShowLegacyWarningDemo()
+    -- UI preview only. Does not create fake addons or change enabled flags.
+    return self:ShowLegacyWarning({
+        {
+            folder = "ServerDungeonJournal",
+            kind = "legacy",
+            detail = "EXAMPLE: older Dungeon Journal installation"
+        }
+    }, true)
 end
 
 function Suite:CheckLegacyInstallations(quiet)
