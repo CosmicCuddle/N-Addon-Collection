@@ -93,6 +93,7 @@ class TestSuitePackage(unittest.TestCase):
         self.assertIn("NCore.expectedVersions = {", versions)
         for addon in OPTIONAL:
             self.assertIn(f'["{addon}"] = "{lock[addon]["version"]}"', versions)
+        self.assertIn('["NTalentCalculator"] = "2.0.0-alpha.1"', versions)
         self.assertNotIn("NClassicBattlegrounds", versions)
 
     def test_original_saved_variables_preserved(self):
