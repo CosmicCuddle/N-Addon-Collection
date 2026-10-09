@@ -26,7 +26,7 @@ permissions:
 
 jobs:
   bundle:
-    if: "${{ github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'release: N Addon Collection v1.0.0') }}"
+    if: "${{ github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'release: N Addon Collection v2.0.0') }}"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,7 +36,7 @@ jobs:
           INPUT_VERSION: ${{ inputs.version }}
         run: |
           if [[ "$GITHUB_EVENT_NAME" == 'push' ]]; then
-            VERSION='v1.0.0'
+            VERSION='v2.0.0'
           else
             VERSION="$INPUT_VERSION"
           fi
