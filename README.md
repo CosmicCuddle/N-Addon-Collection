@@ -14,7 +14,7 @@ This is a **curated, manually approved collection**. Development remains in each
 | `DungeonJournal` | Dungeon Journal | [N-Dungeon-Journal](https://github.com/CosmicCuddle/N-Dungeon-Journal) | Dungeon and raid handbook; Vanilla content is the primary completed section. |
 | `MultiBot` | MultiBot Chatless (Naxxramas fork) | [N-MultiBot-Chatless](https://github.com/CosmicCuddle/N-MultiBot-Chatless) | Playerbot UI; bridge and certain Naxxramas server features require matching server modules. |
 | `NaxxLootLottery` | Naxxramas Loot Ledger | [N-Loot-Ledger](https://github.com/CosmicCuddle/N-Loot-Ledger) | Raid loot planning and lottery; still under development and testing. |
-| `NClassicBattlegrounds` | N Classic Battlegrounds | [N-ClassicBattlegrounds](https://github.com/CosmicCuddle/N-ClassicBattlegrounds) | Expansion-aware PvP UI for Individual Progression; **v0.2.1-beta**, with testing still outstanding. |
+| `NClassicBattlegrounds` | N Classic Battlegrounds | [N-ClassicBattlegrounds](https://github.com/CosmicCuddle/N-ClassicBattlegrounds) | Expansion-aware PvP UI for Individual Progression; **v1.0.0** released; progression transition and server-side queue enforcement tests remain outstanding. |
 
 **Not included:** the personal projects AutoWhisperReply and AutoHideMinimap.
 
