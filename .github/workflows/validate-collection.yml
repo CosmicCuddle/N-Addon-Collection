@@ -21,7 +21,15 @@ jobs:
       - name: Check installable ZIP when addon snapshots exist
         run: |
           if [[ -f sources.lock.json ]]; then
-            python3 scripts/build_bundle.py v0.0.0-ci dist
+            python3 scripts/build_bundle.py v2.0.0-alpha.1 dist
           else
             echo 'No approved source snapshots yet; skipping ZIP build.'
           fi
+
+      - name: Upload test suite ZIP (not a public release)
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: n-addon-suite-v2-test
+          path: dist/N-Addon-Collection-v2.0.0-alpha.1.zip
+          if-no-files-found: error
