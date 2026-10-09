@@ -1,9 +1,10 @@
 """Fast, offline tests for the collection import and package rules."""
+import json
 import tempfile
 import unittest
 from pathlib import Path
 
-from sync_addons import copy_runtime_files, validate_toc
+from sync_addons import CONFIG, copy_runtime_files, validate_config, validate_toc
 
 
 class TestAddonImport(unittest.TestCase):
@@ -28,6 +29,23 @@ class TestAddonImport(unittest.TestCase):
             self.assertFalse((destination / "README.md").exists())
             self.assertFalse((destination / ".github").exists())
             self.assertFalse((destination / "tests").exists())
+
+    def test_collection_contains_five_correct_addon_folders(self):
+        config = json.loads(CONFIG.read_text(encoding="utf-8"))
+        validate_config(config)
+        expected = {
+            "IndividualProgressionAddon", "DungeonJournal", "MultiBot",
+            "NaxxLootLottery", "NClassicBattlegrounds"
+        }
+        self.assertEqual(set(config), expected)
+        self.assertEqual(
+            config["NClassicBattlegrounds"]["repository"],
+            "CosmicCuddle/N-ClassicBattlegrounds"
+        )
+        self.assertEqual(
+            config["NClassicBattlegrounds"]["toc"],
+            "NClassicBattlegrounds.toc"
+        )
 
     def test_toc_requires_correct_interface(self):
         with tempfile.TemporaryDirectory() as temporary:
