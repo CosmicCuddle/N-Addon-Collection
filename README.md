@@ -5,6 +5,16 @@
 **The collection is a normal release.** Some individual addons may still be works in progress. In particular, **N Loot Ledger v0.1.0.27 is WIP, not fully complete, and its real Master Loot awarding remains subject to further server testing.** Its inclusion does not mean that every Loot Ledger feature is production-ready.
 
 This is a **curated, manually approved collection**. Development remains in each original repository. Changes do not appear here until the collection owner reviews and merges an import pull request.
+## N Addon Suite v2 — under development
+
+**The current public v1.0.0 release remains unchanged.** The v2 development branch adds an ElvUI-inspired central settings addon called `NCore` and switches the installer to **five folders total:** `NCore`, `IndividualProgressionAddon`, `DungeonJournal`, `MultiBot`, and `NaxxLootLottery`.
+
+**N Classic Battlegrounds is mandatory within NCore**, not an independently switchable module. It is still maintained in its own source repository but embedded into NCore during approved collection packaging. Its previous standalone folder must be removed before using the v2 suite (both versions would register overlapping PvP hooks).
+
+**Four other addons are optional.** Players can enable or disable them using `/nsuite` or `/nsettings` and then click **Reload UI**. WoW 3.3.5a cannot reliably unload Lua modules that are already running. Each optional addon preserves its original folder name, `.toc` file, SavedVariables and commands.
+
+This is a **test-only alpha design** pending real WoW gameplay verification. Follow the [v2 backup, testing and rollback instructions](docs/SUITE-V2-TEST-PLAN.md) before installing a test artifact. The original addon repositories are not modified, and v1.0.0 continues to be the stable public download.
+
 
 ## Included addons
 
