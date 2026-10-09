@@ -191,6 +191,12 @@ SlashCmdList["NSUITE"] = function(message)
     message = string.lower((message or ""):match("^%s*(.-)%s*$"))
     if message == "status" or message == "debug" then
         Suite:PrintStatus()
+    elseif message == "check demo" then
+        if Suite.ShowLegacyWarningDemo then
+            Suite:ShowLegacyWarningDemo()
+        else
+            Suite:Print("The warning preview is not available.")
+        end
     elseif message == "check" then
         if Suite.CheckLegacyInstallations then
             Suite:CheckLegacyInstallations(false)
@@ -204,6 +210,6 @@ SlashCmdList["NSUITE"] = function(message)
             Suite:Print("The suite settings UI is unavailable.")
         end
     else
-        Suite:Print("Commands: /nsuite, /nsuite status, /nsuite check")
+        Suite:Print("Commands: /nsuite, /nsuite status, /nsuite check, /nsuite check demo")
     end
 end
