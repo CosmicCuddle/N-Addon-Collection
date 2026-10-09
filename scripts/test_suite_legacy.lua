@@ -81,6 +81,18 @@ assert(NSuiteLegacyWarningFrame == nil,
     "Clean installation must not open a warning window")
 assert(registration.event == nil, "Detector should unregister after login")
 
+-- The optional preview must be labeled as an example and leave addon data intact.
+local countBeforeDemo = #addons
+NCore:ShowLegacyWarningDemo()
+local preview = NSuiteLegacyWarningFrame
+assert(preview and preview:IsShown(), "The manual warning demo should appear")
+assert(preview.title.text:find("Example warning", 1, true),
+    "The simulated dialog must clearly identify itself as an example")
+assert(#addons == countBeforeDemo, "A demo must not create additional addons")
+assert(NCore.legacyIssues == nil, "A demo must not alter real scan results")
+preview.dismiss.scripts.OnClick()
+
+
 -- Older version in the current addon folder.
 addons[2].version = "v0.5.9"
 local old = NCore:ScanLegacyInstallations()
