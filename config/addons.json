@@ -26,7 +26,7 @@
   "NClassicBattlegrounds": {
     "repository": "CosmicCuddle/N-ClassicBattlegrounds",
     "branch": "main",
-    "source_folder": ".",
+    "source_folder": "NClassicBattlegrounds",
     "toc": "NClassicBattlegrounds.toc"
   }
 }
