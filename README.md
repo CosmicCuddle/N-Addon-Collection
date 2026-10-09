@@ -2,6 +2,8 @@
 
 **WoW 3.3.5a (client build 12340; Interface 30300)** addons for the Naxxramas AzerothCore server.
 
+**Repository rename in progress:** The four GitHub repository names shown here must be renamed in GitHub Settings before the first source import. The initial setup pull request is not yet merged. This change does **not** rename WoW addon folders or change addon settings.
+
 This is a **curated, manually approved collection**. Development remains in each original repository. Changes do not appear here until the collection owner reviews and merges an import pull request.
 
 ## Included addons
