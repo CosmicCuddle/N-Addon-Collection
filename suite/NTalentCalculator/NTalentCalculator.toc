@@ -1,0 +1,12 @@
+## Interface: 30300
+## Title: |cffE6C35CN|r Talent Calculator
+## Notes: Server DBC talent planner with automatic Individual Progression era and NT1 build sharing.
+## Author: CosmicCuddle
+## Version: 2.0.0-alpha.1
+## Dependencies: NCore
+## SavedVariables: NTalentCalculatorDB
+
+Data.lua
+Engine.lua
+Progression.lua
+UI.lua
