@@ -1,0 +1,47 @@
+name: Bootstrap first addon snapshots
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bootstrap-addon-snapshots
+  cancel-in-progress: false
+
+jobs:
+  first-import:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out latest collection main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+      - name: Stage the first five source releases
+        id: stage
+        run: |
+          set -euo pipefail
+          if [[ -e sources.lock.json ]]; then
+            echo 'Initial import already exists; no source changes made.'
+            echo 'staged=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          python3 scripts/sync_addons.py --addon all
+          python3 scripts/build_bundle.py v0.0.0-validation dist
+          echo 'staged=true' >> "$GITHUB_OUTPUT"
+      - name: Push import branch without changing main
+        if: steps.stage.outputs.staged == 'true'
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch -c staging/initial-addon-snapshots
+          git add addons/ sources.lock.json
+          git commit -m 'chore: stage first five addon releases for review'
+          git push origin HEAD:refs/heads/staging/initial-addon-snapshots
+          echo 'Source snapshots staged on staging/initial-addon-snapshots; merge requires review.'

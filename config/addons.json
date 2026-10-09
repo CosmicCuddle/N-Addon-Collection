@@ -1,0 +1,32 @@
+{
+  "IndividualProgressionAddon": {
+    "repository": "CosmicCuddle/Individual-Progression-Companion",
+    "branch": "main",
+    "source_folder": ".",
+    "toc": "IndividualProgressionAddon.toc"
+  },
+  "DungeonJournal": {
+    "repository": "CosmicCuddle/N-Dungeon-Journal",
+    "branch": "main",
+    "source_folder": ".",
+    "toc": "DungeonJournal.toc"
+  },
+  "MultiBot": {
+    "repository": "CosmicCuddle/N-MultiBot-Chatless",
+    "branch": "main",
+    "source_folder": ".",
+    "toc": "MultiBot.toc"
+  },
+  "NaxxLootLottery": {
+    "repository": "CosmicCuddle/N-Loot-Ledger",
+    "branch": "main",
+    "source_folder": "NaxxLootLottery",
+    "toc": "NaxxLootLottery.toc"
+  },
+  "NClassicBattlegrounds": {
+    "repository": "CosmicCuddle/N-ClassicBattlegrounds",
+    "branch": "main",
+    "source_folder": "NClassicBattlegrounds",
+    "toc": "NClassicBattlegrounds.toc"
+  }
+}

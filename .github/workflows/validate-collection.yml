@@ -1,0 +1,27 @@
+name: Validate collection
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Python syntax
+        run: python3 -m compileall -q scripts
+      - name: Validate source config
+        run: python3 -m json.tool config/addons.json > /dev/null
+      - name: Run offline import tests
+        run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
+      - name: Check installable ZIP when addon snapshots exist
+        run: |
+          if [[ -f sources.lock.json ]]; then
+            python3 scripts/build_bundle.py v0.0.0-ci dist
+          else
+            echo 'No approved source snapshots yet; skipping ZIP build.'
+          fi
