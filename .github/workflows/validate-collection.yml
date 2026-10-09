@@ -12,6 +12,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Check out pinned server website talent snapshot
+        uses: actions/checkout@v4
+        with:
+          repository: CosmicCuddle/Naxxramas-Resource-Hub
+          ref: e2e861d05c4f3d13f850886c973cb66bc60cc849
+          path: talent-source
+          persist-credentials: false
+      - name: Generate approved DBC talent data for Lua 5.1
+        run: |
+          python3 scripts/build_talent_data.py --source talent-source --output suite/NTalentCalculator/Data.lua
+      - name: Check talent data integrity and Python syntax
+        run: |
+          python3 -m json.tool config/talent-data.json > /dev/null
       - name: Check Python syntax
         run: python3 -m compileall -q scripts
       - name: Validate source config
@@ -34,6 +47,7 @@ jobs:
         run: |
           set -euo pipefail
           luac5.1 -p suite/NCore/Core.lua suite/NCore/Settings.lua suite/NCore/LegacyCheck.lua
+          luac5.1 -p suite/NTalentCalculator/Data.lua suite/NTalentCalculator/Engine.lua suite/NTalentCalculator/Progression.lua suite/NTalentCalculator/UI.lua
           lua5.1 scripts/test_suite_core.lua
           lua5.1 scripts/test_suite_settings.lua
           lua5.1 scripts/test_suite_legacy.lua
