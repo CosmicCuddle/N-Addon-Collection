@@ -1,6 +1,6 @@
-# N Addon Suite v2 — alpha migration and test plan
+# N Addon Suite v2 — installation and regression test plan
 
-**Development branch only. Do not replace the public v1.0.0 release until gameplay checks pass.**
+**Version 2.0.0:** The normal public release is available from [GitHub Releases](https://github.com/CosmicCuddle/N-Addon-Collection/releases/tag/v2.0.0). This plan also retains historical alpha test steps for maintainers. Always back up the previous client version before upgrading.
 
 ## Goal
 
@@ -15,12 +15,16 @@ One downloadable ZIP containing exactly five WoW addon folders: `NCore/` plus th
 3. Specifically preserve any old `NClassicBattlegrounds`, `NaxxramasClassicBattlegrounds` or `N-ClassicBattlegrounds` folder and the related character `NClassicBattlegrounds.lua` SavedVariables file.
 4. Keep the [v1.0.0 public collection release](https://github.com/CosmicCuddle/N-Addon-Collection/releases/tag/v1.0.0) available for rollback.
 
-## Install the v2 test ZIP
+## Install N Addon Suite v2.0.0
 
-1. Open the GitHub Actions **Validate collection** run linked from this development pull request. Under **Artifacts**, download `n-addon-suite-v2-test`. GitHub wraps the addon package inside a test-artifact ZIP: first open/extract that outer download, then locate `N-Addon-Collection-v2.0.0-alpha.1.zip` inside it. This is **not a public release**.
-2. Close WoW and remove/relocate the **old standalone Battlegrounds addon folder**. Running the old addon and embedded suite version together is unsupported: both register `/ncbg` and PvP hooks.
-3. Open the **inner** `N-Addon-Collection-v2.0.0-alpha.1.zip` and extract its `NCore/`, `IndividualProgressionAddon/`, `DungeonJournal/`, `MultiBot/`, and `NaxxLootLottery/` folders directly into `World of Warcraft/Interface/AddOns/`.
-4. Check `Interface/AddOns/NCore/NCore.toc` and `Interface/AddOns/NCore/ClassicBattlegrounds/NClassicBattlegrounds.lua` exist. Do not create an extra outer collection folder.
+The standard downloadable release is the `N-Addon-Collection-v2.0.0.zip` attached to [v2.0.0](https://github.com/CosmicCuddle/N-Addon-Collection/releases/tag/v2.0.0). The former `v2.0.0-alpha.1` Actions archive was a prerelease development artifact; do not mistake it for the current production package.
+
+1. Exit WoW and back up your existing AddOns and SavedVariables.
+2. Remove the old standalone `NClassicBattlegrounds` folder and any obsolete `ServerDungeonJournal` folder.
+3. Extract the five folders `NCore/`, `IndividualProgressionAddon/`, `DungeonJournal/`, `MultiBot/`, and `NaxxLootLottery/` from the release ZIP **directly** into `World of Warcraft/Interface/AddOns/`.
+4. Verify `Interface/AddOns/NCore/NCore.toc` and `Interface/AddOns/NCore/ClassicBattlegrounds/NClassicBattlegrounds.lua` exist.
+5. In-game, type `/nsettings` and confirm only four optional modules appear. Classic Battlegrounds must show `ALWAYS ON`.
+6. The independent **N Talent Calculator is deliberately absent** from the v2.0.0 release. Its development and optional future suite inclusion are tracked separately.
 
 ## Automatic older-addon warning
 
