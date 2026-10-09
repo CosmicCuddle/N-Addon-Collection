@@ -2,30 +2,25 @@
 
 ## Core rule
 
-The four original GitHub repositories are the **development sources**. This collection contains **approved snapshots only**. Changes to the collection never write back to the source repositories.
+The five original GitHub addon repositories are the **development sources**. This collection contains **approved snapshots only**. Changes to the collection never write back to the source repositories.
 
 AutoWhisperReply and AutoHideMinimap are personal projects and are explicitly excluded.
 
-## Required GitHub renames before first import
+## GitHub repository names verified
 
-Before running the first source import, rename these GitHub repositories in **Settings → General → Repository name**:
+The shorter repository names are now active: `N-Dungeon-Journal`, `N-MultiBot-Chatless`, `N-Loot-Ledger`, `N-ClassicBattlegrounds`, and `N-Addon-Collection`. `Individual-Progression-Companion` retains its original name. All five addon sources are independent development repositories.
 
-- `Naxx-Dungeon-Journal` → `N-Dungeon-Journal`
-- `MultiBot-Chatless-Naxxramas` → `N-MultiBot-Chatless`
-- `Naxxramas-Loot-Ledger` → `N-Loot-Ledger`
-- `Naxxramas-Addon-Collection` → `N-Addon-Collection`
-
-The setup pull request has already been prepared for these **future repository names**. Do not run the import before the source repositories are renamed. Do not change addon `.toc` filenames, installed folder names or SavedVariables.
+**Never change addon folder names, `.toc` filenames, Lua identifiers, or SavedVariables when merely renaming a GitHub repository.**
 
 ## First import
 
 1. Review and merge the setup pull request.
 2. Open **Actions → Stage approved addon update → Run workflow**.
 3. Select **all** and leave **source_ref** blank. The script checks out the current `main` revision of each source repository.
-4. Inspect the generated pull request, the four addon folders, and the file `sources.lock.json`.
-5. Confirm the versions have been tested and merge when satisfied.
+4. Inspect the generated pull request, the five addon folders, and the file `sources.lock.json`.
+5. Confirm source versions and testing status, especially the **beta** addon(s), and merge only when satisfied.
 
-The four addon folders will appear under `addons/`. Their names are the exact directories needed inside WoW's `Interface/AddOns/` directory.
+The five addon folders will appear under `addons/`. Their names are the exact directories needed inside WoW's `Interface/AddOns/` directory.
 
 ### GitHub workflow permission
 
@@ -46,7 +41,7 @@ The staging workflow needs **Contents: read/write** and **Pull requests: read/wr
 1. Open **Actions → Build or publish addon bundle → Run workflow**.
 2. Enter a unique collection version, for example `v1.0.0`.
 3. Leave **publish_release** unchecked first. The workflow uploads a downloadable test ZIP in its run artifacts.
-4. Verify that the ZIP opens with exactly these top-level folders: `IndividualProgressionAddon/`, `DungeonJournal/`, `MultiBot/`, `NaxxLootLottery/`.
+4. Verify that the ZIP opens with exactly these top-level folders: `IndividualProgressionAddon/`, `DungeonJournal/`, `MultiBot/`, `NaxxLootLottery/`, `NClassicBattlegrounds/`.
 5. If satisfied, run again with **publish_release** checked. Keep **prerelease** enabled for any development collection.
 
 Releases use a separate **collection version**. Individual addons keep the versions written in their own TOC files; `sources.lock.json` records the source SHA and addon version.
@@ -56,11 +51,11 @@ Releases use a separate **collection version**. Individual addons keep the versi
 - **Before merging a staged PR:** close it; the published collection is untouched.
 - **After merging:** revert the merge commit through GitHub (or make a new corrective PR) to restore the previous collection snapshot.
 - **After releasing:** preserve old releases; rebuild a new, clearly versioned release using the restored or corrected collection. Do not silently replace an older ZIP.
-- **On the WoW client:** back up the four addon folders and the appropriate `WTF` SavedVariables before installation or replacement. Restore those backups if rollback is needed.
+- **On the WoW client:** back up the five addon folders and the appropriate `WTF` SavedVariables before installation or replacement. Restore those backups if rollback is needed.
 
 ## Source layout and licence handling
 
-The source mapping is in `config/addons.json`. The first three source repositories keep their addon files at repository root; Naxxramas Loot Ledger keeps its installable addon within the `NaxxLootLottery` subfolder. The import script excludes repository-level development materials such as `.github/`, `docs/` and `tests/` while preserving addon code and assets.
+The source mapping is in `config/addons.json`. Individual Progression, Dungeon Journal, MultiBot and Classic Battlegrounds keep their addon files at their repository roots; N Loot Ledger keeps its installable addon within the `NaxxLootLottery` subfolder. The import script excludes repository-level development materials such as `.github/`, `docs/` and `tests/` while preserving addon code and assets.
 
 Retain Dungeon Journal's `LICENSE-GPL-2.0.txt` and `CREDITS.txt`, and MultiBot's GPLv3 `LICENSE` and upstream credits. Licence files must stay alongside their respective bundled addon. The collection does not change licences or claim original authorship of upstream work.
 
@@ -69,3 +64,4 @@ Retain Dungeon Journal's `LICENSE-GPL-2.0.txt` and `CREDITS.txt`, and MultiBot's
 - Individual Progression Companion is designed for the customised Naxxramas/AzerothCore progression rules.
 - MultiBot Chatless requires the corresponding server-side bridge for bridge functions and Naxxramas Core for its custom bot consumables integration.
 - Naxxramas Loot Ledger remains in development; testing of its full real loot-awarding workflow must continue before calling it stable.
+- N Classic Battlegrounds v0.2.1-beta is client-side interface control only; it **does not** enforce server queue restrictions. Additional era-specific client tests and optional server-side Battlemaster testing remain outstanding. Do not mark stable until verified.
