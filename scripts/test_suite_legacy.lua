@@ -83,13 +83,14 @@ assert(registration.event == nil, "Detector should unregister after login")
 
 -- The optional preview must be labeled as an example and leave addon data intact.
 local countBeforeDemo = #addons
+local priorScan = NCore.legacyIssues
 NCore:ShowLegacyWarningDemo()
 local preview = NSuiteLegacyWarningFrame
 assert(preview and preview:IsShown(), "The manual warning demo should appear")
 assert(preview.title.text:find("Example warning", 1, true),
     "The simulated dialog must clearly identify itself as an example")
 assert(#addons == countBeforeDemo, "A demo must not create additional addons")
-assert(NCore.legacyIssues == nil, "A demo must not alter real scan results")
+assert(NCore.legacyIssues == priorScan, "A demo must not alter real scan results")
 preview.dismiss.scripts.OnClick()
 
 
