@@ -76,6 +76,17 @@ local function CreatePanel()
     panel:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
     panel:SetClampedToScreen(true)
 
+    -- Leave a margin on low-resolution displays or unusually high UI scales.
+    -- WoW reports UIParent dimensions in UI coordinates, not raw pixels.
+    if UIParent and UIParent.GetWidth and UIParent.GetHeight then
+        local viewWidth, viewHeight = UIParent:GetWidth(), UIParent:GetHeight()
+        if type(viewWidth) == "number" and type(viewHeight) == "number"
+           and viewWidth > 100 and viewHeight > 100 then
+            local fit = math.min(1, (viewWidth - 48) / 620, (viewHeight - 48) / 485)
+            panel:SetScale(math.max(0.65, fit))
+        end
+    end
+
     -- A nearly opaque solid backing keeps nameplates, players and bright
     -- scenery from competing with the settings text.
     panel:SetBackdrop({
