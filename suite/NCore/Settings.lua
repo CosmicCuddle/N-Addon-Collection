@@ -91,6 +91,7 @@ local function CreatePanel()
     MakeLabel(panel, "GameFontNormal", "Optional modules", 28, -161)
 
     for index, module in ipairs(Suite.modules) do
+        local moduleInfo = module  -- fresh Lua 5.1 upvalue for this row
         local row = CreateFrame("Frame", nil, panel)
         row:SetPoint("TOPLEFT", panel, "TOPLEFT", 28, -181 - (index - 1) * 55)
         row:SetWidth(565)
@@ -113,7 +114,7 @@ local function CreatePanel()
 
         check:SetScript("OnClick", function(self)
             local desired = self:GetChecked() and true or false
-            local ok, problem = Suite:SetEnabled(module.folder, desired)
+            local ok, problem = Suite:SetEnabled(moduleInfo.folder, desired)
             if not ok then
                 Suite:Print(problem)
             end
@@ -122,7 +123,7 @@ local function CreatePanel()
 
         row.check = check
         row.status = status
-        rows[index] = { row = row, module = module }
+        rows[index] = { row = row, module = moduleInfo }
     end
 
     panel.notice = MakeLabel(panel, "GameFontHighlightSmall", "", 28, -416)
