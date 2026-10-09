@@ -15,10 +15,10 @@ The shorter repository names are now active: `N-Dungeon-Journal`, `N-MultiBot-Ch
 ## First import
 
 1. Review and merge the setup pull request.
-2. Open **Actions → Stage approved addon update → Run workflow**.
-3. Select **all** and leave **source_ref** blank. The script checks out the current `main` revision of each source repository.
-4. Inspect the generated pull request, the five addon folders, and the file `sources.lock.json`.
-5. Confirm source versions and testing status, especially the **beta** addon(s), and merge only when satisfied.
+2. The initial bootstrap workflow runs on that merge and stages the five addon sources in `staging/initial-addon-snapshots`. If needed, trigger **Actions → Bootstrap first addon snapshots → Run workflow**.
+3. Review the import branch through a pull request. The script uses the sources' current `main` revisions, verified against their latest release tags.
+4. Check the five addon folders and the exact source commits in `sources.lock.json`.
+5. When satisfied, merge the first import pull request. For this initial publication only, the merge commit title `release: N Addon Collection v1.0.0-rc.1` triggers creation of a public **pre-release** ZIP; no later publication happens without another explicit action.
 
 The five addon folders will appear under `addons/`. Their names are the exact directories needed inside WoW's `Interface/AddOns/` directory.
 
@@ -42,9 +42,9 @@ The staging workflow needs **Contents: read/write** and **Pull requests: read/wr
 2. Enter a unique collection version, for example `v1.0.0`.
 3. Leave **publish_release** unchecked first. The workflow uploads a downloadable test ZIP in its run artifacts.
 4. Verify that the ZIP opens with exactly these top-level folders: `IndividualProgressionAddon/`, `DungeonJournal/`, `MultiBot/`, `NaxxLootLottery/`, `NClassicBattlegrounds/`.
-5. If satisfied, run again with **publish_release** checked. Keep **prerelease** enabled for any development collection.
+5. If satisfied, run again with **publish_release** checked. Keep **prerelease** enabled for a collection that includes unfinished or unverified features.
 
-Releases use a separate **collection version**. Individual addons keep the versions written in their own TOC files; `sources.lock.json` records the source SHA and addon version.
+For the initial import we use `v1.0.0-rc.1` as an explicitly labelled pre-release because Loot Ledger and certain other features still require testing. Future releases are manually triggered. Releases use a separate **collection version**. Individual addons keep the versions written in their own TOC files; `sources.lock.json` records the source SHA and addon version.
 
 ## Backup and undo
 
@@ -55,7 +55,7 @@ Releases use a separate **collection version**. Individual addons keep the versi
 
 ## Source layout and licence handling
 
-The source mapping is in `config/addons.json`. Individual Progression, Dungeon Journal, MultiBot and Classic Battlegrounds keep their addon files at their repository roots; N Loot Ledger keeps its installable addon within the `NaxxLootLottery` subfolder. The import script excludes repository-level development materials such as `.github/`, `docs/` and `tests/` while preserving addon code and assets.
+The source mapping is in `config/addons.json`. Individual Progression, Dungeon Journal and MultiBot keep addon files at their repository roots; N Loot Ledger installs from the `NaxxLootLottery` subfolder, and N Classic Battlegrounds installs from `NClassicBattlegrounds`. The import script excludes repository-level development materials such as `.github/`, `docs/` and `tests/` while preserving addon code and assets.
 
 Retain Dungeon Journal's `LICENSE-GPL-2.0.txt` and `CREDITS.txt`, and MultiBot's GPLv3 `LICENSE` and upstream credits. Licence files must stay alongside their respective bundled addon. The collection does not change licences or claim original authorship of upstream work.
 
@@ -64,4 +64,4 @@ Retain Dungeon Journal's `LICENSE-GPL-2.0.txt` and `CREDITS.txt`, and MultiBot's
 - Individual Progression Companion is designed for the customised Naxxramas/AzerothCore progression rules.
 - MultiBot Chatless requires the corresponding server-side bridge for bridge functions and Naxxramas Core for its custom bot consumables integration.
 - Naxxramas Loot Ledger remains in development; testing of its full real loot-awarding workflow must continue before calling it stable.
-- N Classic Battlegrounds v0.2.1-beta is client-side interface control only; it **does not** enforce server queue restrictions. Additional era-specific client tests and optional server-side Battlemaster testing remain outstanding. Do not mark stable until verified.
+- N Classic Battlegrounds v1.0.0 is released and provides client-side interface control only; it **does not** enforce server queue restrictions. Additional era-specific client tests and optional server-side Battlemaster testing remain outstanding. Do not mark stable until verified.
