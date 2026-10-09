@@ -48,6 +48,25 @@ jobs:
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
       - name: Build install-ready bundle
         run: python3 scripts/build_bundle.py "$VERSION" dist
+      - name: Verify v2 package has no Talent Calculator
+        run: |
+          python3 - <<'PY'
+          import json, zipfile
+          from pathlib import Path
+          archive = Path('dist') / f"N-Addon-Collection-{__import__('os').environ['VERSION']}.zip"
+          with zipfile.ZipFile(archive) as pack:
+              names = pack.namelist()
+              roots = {name.partition('/')[0] for name in names}
+              approved = {'NCore','IndividualProgressionAddon','DungeonJournal','MultiBot','NaxxLootLottery'}
+              assert roots == approved, f'Unexpected installed addon folders: {roots ^ approved}'
+              assert 'NCore/ClassicBattlegrounds/NClassicBattlegrounds.lua' in names
+              assert 'NTalentCalculator' not in roots
+              assert 'NClassicBattlegrounds' not in roots
+              assert '## Version: 2.0.0' in pack.read('NCore/NCore.toc').decode('utf-8')
+          lock = json.loads(Path('sources.lock.json').read_text())
+          assert 'NTalentCalculator' not in lock
+          print('Verified v2: required NCore, four optional folders, no Talent Calculator')
+          PY
       - name: Save downloadable Actions artifact
         uses: actions/upload-artifact@v4
         with:
