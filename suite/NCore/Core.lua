@@ -48,20 +48,74 @@ function Suite:FindIndex(folder)
     return nil
 end
 
+-- Return the WoW client's *configured* enable state. This is different
+-- from IsAddOnLoaded: an addon already in memory stays loaded until /reload.
+local function AsEnabled(value)
+    return value ~= nil and value ~= false and value ~= 0
+end
+
 function Suite:IsEnabled(folder)
     local index = self:FindIndex(folder)
     if not index then return false, false end
 
+    -- 3.3.5a GetAddOnInfo returns the enabled flag in position 4.
+    -- Some clients also provide GetAddOnEnableState; do not rely on it alone.
+    local _, _, _, legacyState = GetAddOnInfo(index)
+    local legacyEnabled = AsEnabled(legacyState)
     if type(GetAddOnEnableState) == "function" then
-        -- 3.3.5a: returns 0 when disabled; 1 or 2 when enabled.
-        local state = GetAddOnEnableState(UnitName("player"), index)
-        if type(state) == "number" then
+        local ok, state = pcall(GetAddOnEnableState, UnitName("player"), index)
+        if ok and type(state) == "number" then
             return state > 0, true
         end
     end
+    return legacyEnabled, true
+end
 
-    local _, _, _, enabled = GetAddOnInfo(index)
-    return enabled and true or false, true
+function Suite:IsLoaded(folder)
+    if type(IsAddOnLoaded) ~= "function" then return nil end
+    local ok, loaded = pcall(IsAddOnLoaded, folder)
+    if not ok then return nil end
+    return loaded and true or false
+end
+
+local function NameOrNumber(value)
+    if value == nil then return "unavailable" end
+    return tostring(value)
+end
+
+function Suite:PrintStatus()
+    self:Print("Optional module diagnostics (configured / loaded now):")
+    for _, module in ipairs(self.modules) do
+        local index = self:FindIndex(module.folder)
+        local enabled, installed = self:IsEnabled(module.folder)
+        local loaded = self:IsLoaded(module.folder)
+        local label = installed and (enabled and "enabled" or "disabled") or "missing"
+        self:Print(module.title .. ": " .. label ..
+            " / loaded=" .. NameOrNumber(loaded) ..
+            " / index=" .. NameOrNumber(index))
+    end
+
+    local count = 0
+    if type(GetNumAddOns) == "function" then
+        for index = 1, GetNumAddOns() do
+            local name = GetAddOnInfo(index)
+            if type(name) == "string" then
+                local lower = string.lower(name)
+                if string.find(lower, "dungeonjournal", 1, true) then
+                    count = count + 1
+                    self:Print("Journal folder: " .. name ..
+                        " / loaded=" .. NameOrNumber(self:IsLoaded(name)))
+                end
+            end
+        end
+    end
+    if count == 0 then
+        self:Print("No Dungeon Journal folder found in the addon list.")
+    end
+    local registered = type(SlashCmdList) == "table" and
+        type(SlashCmdList.DUNGEONJOURNAL) == "function"
+    self:Print("/dj command registered: " .. tostring(registered) ..
+        ". Disabled addons already loaded remain active until Reload UI.")
 end
 
 function Suite:SetEnabled(folder, enable)
@@ -89,11 +143,32 @@ function Suite:SetEnabled(folder, enable)
         return false, "This client cannot change addon enable states."
     end
 
-    -- Blizzard's addon manager handles persistence of the enabled state.
-    local success, err = pcall(method, index)
-    if not success then
-        return false, tostring(err)
+    -- Use the exact addon folder. Older 3.3.5 clients accept both folder
+    -- names and indices, so try the index only if a name call has no effect.
+    local success, err = pcall(method, folder)
+    local actual, present = self:IsEnabled(folder)
+    if not success or not present or actual ~= enable then
+        local retryOK, retryErr = pcall(method, index)
+        actual, present = self:IsEnabled(folder)
+        if not retryOK or not present or actual ~= enable then
+            return false, "WoW did not " ..
+                (enable and "enable " or "disable ") .. folder ..
+                ". Please check the AddOns list at character selection." ..
+                (not retryOK and (" (" .. tostring(retryErr) .. ")") or
+                (not success and (" (" .. tostring(err) .. ")") or ""))
+        end
     end
+
+    -- Persist addon flags before reload when the legacy API is available.
+    -- Never report success if the client explicitly fails to save them.
+    if type(SaveAddOns) == "function" then
+        local saved, problem = pcall(SaveAddOns)
+        if not saved then
+            self.needsReload = true
+            return false, "Enable state changed but SaveAddOns failed: " .. tostring(problem)
+        end
+    end
+
     self.needsReload = true
     return true
 end
@@ -112,10 +187,17 @@ end
 
 SLASH_NSUITE1 = "/nsuite"
 SLASH_NSUITE2 = "/nsettings"
-SlashCmdList["NSUITE"] = function()
-    if Suite.ToggleSettings then
-        Suite:ToggleSettings()
+SlashCmdList["NSUITE"] = function(message)
+    message = string.lower((message or ""):match("^%s*(.-)%s*$"))
+    if message == "status" or message == "debug" then
+        Suite:PrintStatus()
+    elseif message == "" then
+        if Suite.ToggleSettings then
+            Suite:ToggleSettings()
+        else
+            Suite:Print("The suite settings UI is unavailable.")
+        end
     else
-        Suite:Print("The suite settings UI is unavailable.")
+        Suite:Print("Commands: /nsuite, /nsuite status")
     end
 end
