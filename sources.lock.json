@@ -23,5 +23,10 @@
     "commit": "7169f5d7b8e959d1f0b86f9b7f98913d5288b1bb",
     "repository": "CosmicCuddle/N-Loot-Ledger",
     "version": "0.1.0.27"
+  },
+  "NTalentCalculator": {
+    "repository": "CosmicCuddle/N-Talent-Calculator-",
+    "commit": "d403eec176e92773cf2c5a102d94c8546916d17f",
+    "version": "0.1.0-alpha.1"
   }
 }
