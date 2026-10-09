@@ -6,6 +6,17 @@ The four original GitHub repositories are the **development sources**. This coll
 
 AutoWhisperReply and AutoHideMinimap are personal projects and are explicitly excluded.
 
+## Required GitHub renames before first import
+
+Before running the first source import, rename these GitHub repositories in **Settings → General → Repository name**:
+
+- `Naxx-Dungeon-Journal` → `N-Dungeon-Journal`
+- `MultiBot-Chatless-Naxxramas` → `N-MultiBot-Chatless`
+- `Naxxramas-Loot-Ledger` → `N-Loot-Ledger`
+- `Naxxramas-Addon-Collection` → `N-Addon-Collection`
+
+The setup pull request has already been prepared for these **future repository names**. Do not run the import before the source repositories are renamed. Do not change addon `.toc` filenames, installed folder names or SavedVariables.
+
 ## First import
 
 1. Review and merge the setup pull request.
