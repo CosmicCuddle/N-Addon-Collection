@@ -106,6 +106,8 @@ assert(dialog.background and dialog.background[4] >= 0.95,
     "Warning window should be readable")
 assert(dialog.lines[1].text:find("DungeonJournal", 1, true),
     "Outdated folder missing from visible warning")
+assert(dialog.help.text:find("delete the old addon folder", 1, true),
+    "Popup should tell the player to delete the old addon")
 dialog.dismiss.scripts.OnClick()
 assert(not dialog:IsShown(), "Dismiss button must close warning")
 
