@@ -109,6 +109,25 @@ def addon_toc_with_dependency(source):
     return "".join(lines).encode("utf-8")
 
 
+def make_version_manifest(lock):
+    """Embed the exact approved source versions for in-client conflict checks.
+
+    The manifest is generated at packaging time, never edited in original
+    addon repositories. This prevents hardcoded expected versions going stale.
+    """
+    lines = [
+        "-- Auto-generated from sources.lock.json. Do not edit this package file.",
+        "NCore.expectedVersions = {",
+    ]
+    for folder in OPTIONAL:
+        version = str(lock[folder]["version"])
+        if not re.fullmatch(r"v?[0-9]+(?:\.[0-9]+)*(?:[-_][A-Za-z0-9.-]+)?", version):
+            raise ValueError(f"Unsafe or unknown addon version for {folder}: {version}")
+        lines.append(f"    [{json.dumps(folder)}] = {json.dumps(version)},")
+    lines.append("}")
+    return ("\n".join(lines) + "\n").encode("utf-8")
+
+
 def build(version, output_dir):
     config = json.loads((ROOT / "config" / "addons.json").read_text(encoding="utf-8"))
     lockfile = ROOT / "sources.lock.json"
@@ -124,6 +143,13 @@ def build(version, output_dir):
     entries = {}
     for source, relative in iter_files(CORE):
         entries[f"NCore/{relative}"] = source.read_bytes()
+
+    # The core TOC loads ExpectedVersions.lua, supplied *only* in the ZIP.
+    # Preserve the development tree's pristine source snapshots.
+    generated_path = "NCore/ExpectedVersions.lua"
+    if generated_path in entries:
+        raise ValueError("ExpectedVersions.lua must be generated, not committed")
+    entries[generated_path] = make_version_manifest(lock)
 
     battleground_file = SNAPSHOTS / MANDATORY / "NClassicBattlegrounds.lua"
     valid_file(battleground_file, SNAPSHOTS / MANDATORY)
