@@ -125,6 +125,12 @@ def make_version_manifest(lock):
         if not re.fullmatch(r"v?[0-9]+(?:\.[0-9]+)*(?:[-_][A-Za-z0-9.-]+)?", version):
             raise ValueError(f"Unsafe or unknown addon version for {folder}: {version}")
         lines.append(f"    [{json.dumps(folder)}] = {json.dumps(version)},")
+    local_toc = (ROOT / "suite" / "NTalentCalculator" /
+                 "NTalentCalculator.toc").read_text(encoding="utf-8")
+    found = re.search(r"^##\s*Version:\s*([^\r\n]+)", local_toc, re.M)
+    if not found:
+        raise ValueError("The talent calculator TOC has no version")
+    lines.append(f'    ["NTalentCalculator"] = {json.dumps(found.group(1).strip())},')
     lines.append("}")
     return ("\n".join(lines) + "\n").encode("utf-8")
 
