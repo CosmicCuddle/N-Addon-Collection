@@ -17,7 +17,7 @@ def build(version, output_dir):
         raise ValueError("No approved snapshot: sources.lock.json is missing")
     lock = json.loads(lockfile.read_text())
     output_dir.mkdir(parents=True, exist_ok=True)
-    archive = output_dir / f"Naxxramas-Addon-Collection-{version}.zip"
+    archive = output_dir / f"N-Addon-Collection-{version}.zip"
     entries = []
 
     for addon, details in config.items():
