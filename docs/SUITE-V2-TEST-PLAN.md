@@ -36,6 +36,9 @@ One downloadable ZIP containing exactly five WoW addon folders: `NCore/` plus th
 - [ ] Re-enable Dungeon Journal, reload, and verify it works and the user's settings are retained.
 - [ ] Repeat enable/disable and reload for Individual Progression, MultiBot, and Loot Ledger.
 - [ ] Verify Loot Ledger UI and 40-character simulator if its optional module is enabled; do not treat real loot awarding as production-ready.
+- [ ] Confirm the `/nsettings` panel has a dark, readable background even when a character or bright game scenery is behind it.
+- [ ] Confirm descriptions, enabled labels and the Reload UI footer have no overlap, wrapping into adjacent rows or clipping at the bottom border.
+- [ ] Confirm the window fits within the screen at higher UI scale and small resolutions, with a visible margin around the frame.
 - [ ] Check UI accessibility at common WoW screen resolutions and UIScale levels.
 
 **Important limitations:** A Lua addon cannot prevent users from disabling the *entire* `NCore` addon or modifying their client. Battleground queue restrictions require properly tested server-side enforcement. Individual addons cannot safely be *unloaded live* in WoW 3.3.5a, so changes take effect only after Reload UI. The original Battlegrounds per-character enabled flag is not migrated (and cannot disable the required core feature).
