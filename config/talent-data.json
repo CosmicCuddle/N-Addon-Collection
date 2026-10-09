@@ -1,0 +1,9 @@
+{
+  "source_repository": "CosmicCuddle/Naxxramas-Resource-Hub",
+  "source_commit": "e2e861d05c4f3d13f850886c973cb66bc60cc849",
+  "talents_path": "talents/data/server-talents-v1.gz.b64",
+  "talents_git_blob_sha": "9a11c998850b3069ca15d42f5c6c24b124e5ec21",
+  "visuals_path": "talents/data/talent-visuals-v1.gz.b64",
+  "visuals_git_blob_sha": "2a580c72c07153ab76bc5d8792e89af900def971",
+  "description": "Approved DBC-derived website calculator snapshot, not live server data. Update only after comparing custom server DBC and approving the website source."
+}
