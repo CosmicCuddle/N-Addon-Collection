@@ -2,7 +2,7 @@
 
 **WoW 3.3.5a (client build 12340; Interface 30300)** addons for the Naxxramas AzerothCore server.
 
-**Repository rename in progress:** The four GitHub repository names shown here must be renamed in GitHub Settings before the first source import. The initial setup pull request is not yet merged. This change does **not** rename WoW addon folders or change addon settings.
+**Repository renames completed:** The GitHub repositories use their shorter `N-` names. WoW addon folders and SavedVariables keep their existing compatible names. The setup pull request is pending review.
 
 This is a **curated, manually approved collection**. Development remains in each original repository. Changes do not appear here until the collection owner reviews and merges an import pull request.
 
@@ -14,12 +14,13 @@ This is a **curated, manually approved collection**. Development remains in each
 | `DungeonJournal` | Dungeon Journal | [N-Dungeon-Journal](https://github.com/CosmicCuddle/N-Dungeon-Journal) | Dungeon and raid handbook; Vanilla content is the primary completed section. |
 | `MultiBot` | MultiBot Chatless (Naxxramas fork) | [N-MultiBot-Chatless](https://github.com/CosmicCuddle/N-MultiBot-Chatless) | Playerbot UI; bridge and certain Naxxramas server features require matching server modules. |
 | `NaxxLootLottery` | Naxxramas Loot Ledger | [N-Loot-Ledger](https://github.com/CosmicCuddle/N-Loot-Ledger) | Raid loot planning and lottery; still under development and testing. |
+| `NClassicBattlegrounds` | N Classic Battlegrounds | [N-ClassicBattlegrounds](https://github.com/CosmicCuddle/N-ClassicBattlegrounds) | Expansion-aware PvP UI for Individual Progression; **v0.2.1-beta**, with testing still outstanding. |
 
 **Not included:** the personal projects AutoWhisperReply and AutoHideMinimap.
 
 ## Download and install
 
-Once the first reviewed import and bundle are published, download the ZIP from [Releases](https://github.com/CosmicCuddle/N-Addon-Collection/releases). It contains the four addon folders directly at the ZIP root.
+Once the first reviewed import and bundle are published, download the ZIP from [Releases](https://github.com/CosmicCuddle/N-Addon-Collection/releases). It contains the five addon folders directly at the ZIP root.
 
 1. Exit World of Warcraft.
 2. **Back up** any existing addon folders under `World of Warcraft/Interface/AddOns/` and the corresponding `WTF` SavedVariables files.
@@ -29,9 +30,10 @@ Once the first reviewed import and bundle are published, download the ZIP from [
    - `Interface/AddOns/DungeonJournal/DungeonJournal.toc`
    - `Interface/AddOns/MultiBot/MultiBot.toc`
    - `Interface/AddOns/NaxxLootLottery/NaxxLootLottery.toc`
+   - `Interface/AddOns/NClassicBattlegrounds/NClassicBattlegrounds.toc`
 5. Start WoW 3.3.5a and enable the addons you want at character selection.
 
-Do **not** install an extra `N-Addon-Collection` folder around the four addons. For individual addon downloads, use the links to the original repositories above.
+Do **not** install an extra `N-Addon-Collection` folder around the five addons. For individual addon downloads, use the links to the original repositories above.
 
 ## How updates are approved
 
@@ -48,6 +50,8 @@ See [Maintainer Guide](docs/MAINTAINER-GUIDE.md) for steps, workflow permissions
 ## Server requirements and licences
 
 These addons target a customised AzerothCore server and may depend on its Individual Progression, Playerbots, MultiBot bridge and Naxxramas Core features. Review the upstream READMEs for the specific requirements.
+
+Classic Battlegrounds controls **client-side visibility only**; hiding the remote queue interface does not enforce server-side restrictions. The optional server-side Battlemaster rules must be separately configured and tested.
 
 Each bundled addon keeps its own licence and attribution requirements. In particular:
 
