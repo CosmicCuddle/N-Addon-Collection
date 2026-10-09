@@ -5,7 +5,7 @@
 NCore = NCore or {}
 local Suite = NCore
 
-Suite.version = "2.0.0-alpha.1"
+Suite.version = "2.0.0"
 Suite.modules = {
     {
         folder = "IndividualProgressionAddon",
