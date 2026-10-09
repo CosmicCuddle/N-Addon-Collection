@@ -1,4 +1,4 @@
-# Naxxramas Addon Collection
+# N Addon Collection
 
 **WoW 3.3.5a (client build 12340; Interface 30300)** addons for the Naxxramas AzerothCore server.
 
@@ -9,15 +9,15 @@ This is a **curated, manually approved collection**. Development remains in each
 | Installed folder | Addon | Original development repository | Notes |
 | --- | --- | --- | --- |
 | `IndividualProgressionAddon` | Individual Progression Companion | [Individual-Progression-Companion](https://github.com/CosmicCuddle/Individual-Progression-Companion) | Server-specific Vanilla, TBC and WotLK progression guidance. |
-| `DungeonJournal` | Dungeon Journal | [Naxx-Dungeon-Journal](https://github.com/CosmicCuddle/Naxx-Dungeon-Journal) | Dungeon and raid handbook; Vanilla content is the primary completed section. |
-| `MultiBot` | MultiBot Chatless (Naxxramas fork) | [MultiBot-Chatless-Naxxramas](https://github.com/CosmicCuddle/MultiBot-Chatless-Naxxramas) | Playerbot UI; bridge and certain Naxxramas server features require matching server modules. |
-| `NaxxLootLottery` | Naxxramas Loot Ledger | [Naxxramas-Loot-Ledger](https://github.com/CosmicCuddle/Naxxramas-Loot-Ledger) | Raid loot planning and lottery; still under development and testing. |
+| `DungeonJournal` | Dungeon Journal | [N-Dungeon-Journal](https://github.com/CosmicCuddle/N-Dungeon-Journal) | Dungeon and raid handbook; Vanilla content is the primary completed section. |
+| `MultiBot` | MultiBot Chatless (Naxxramas fork) | [N-MultiBot-Chatless](https://github.com/CosmicCuddle/N-MultiBot-Chatless) | Playerbot UI; bridge and certain Naxxramas server features require matching server modules. |
+| `NaxxLootLottery` | Naxxramas Loot Ledger | [N-Loot-Ledger](https://github.com/CosmicCuddle/N-Loot-Ledger) | Raid loot planning and lottery; still under development and testing. |
 
 **Not included:** the personal projects AutoWhisperReply and AutoHideMinimap.
 
 ## Download and install
 
-Once the first reviewed import and bundle are published, download the ZIP from [Releases](https://github.com/CosmicCuddle/Naxxramas-Addon-Collection/releases). It contains the four addon folders directly at the ZIP root.
+Once the first reviewed import and bundle are published, download the ZIP from [Releases](https://github.com/CosmicCuddle/N-Addon-Collection/releases). It contains the four addon folders directly at the ZIP root.
 
 1. Exit World of Warcraft.
 2. **Back up** any existing addon folders under `World of Warcraft/Interface/AddOns/` and the corresponding `WTF` SavedVariables files.
@@ -29,7 +29,7 @@ Once the first reviewed import and bundle are published, download the ZIP from [
    - `Interface/AddOns/NaxxLootLottery/NaxxLootLottery.toc`
 5. Start WoW 3.3.5a and enable the addons you want at character selection.
 
-Do **not** install an extra `Naxxramas-Addon-Collection` folder around the four addons. For individual addon downloads, use the links to the original repositories above.
+Do **not** install an extra `N-Addon-Collection` folder around the four addons. For individual addon downloads, use the links to the original repositories above.
 
 ## How updates are approved
 
