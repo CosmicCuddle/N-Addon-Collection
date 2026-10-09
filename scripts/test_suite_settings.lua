@@ -8,6 +8,9 @@ end
 
 function frameMethods:SetWidth(value) self.width = value end
 function frameMethods:SetHeight(value) self.height = value end
+function frameMethods:GetWidth() return self.width end
+function frameMethods:GetHeight() return self.height end
+function frameMethods:SetScale(value) self.scale = value end
 function frameMethods:SetPoint(...) self.point = {...} end
 function frameMethods:ClearAllPoints() self.point = nil end
 function frameMethods:SetText(text) self.text = text end
@@ -44,6 +47,8 @@ function frameMethods:RegisterForDrag() end
 function frameMethods:SetClampedToScreen() end
 
 UIParent = newObject()
+UIParent:SetWidth(610)
+UIParent:SetHeight(475)
 function CreateFrame(kind, name)
     local obj = newObject()
     if name then _G[name] = obj end
@@ -79,6 +84,8 @@ NCore:ToggleSettings()
 local panel = NSuiteSettingsFrame
 assert(panel and panel:IsShown(), "Settings did not open")
 assert(panel.width == 620 and panel.height == 485, "Unexpected window dimensions")
+assert(panel.scale and panel.scale < 1 and panel.scale > 0.65,
+    "Window must automatically fit smaller or high UI-scale viewports")
 assert(panel.backdrop and panel.backdrop.bgFile == "Interface\\Buttons\\WHITE8X8",
     "Window must use an opaque-compatible dark backing")
 assert(panel.backdropColor and panel.backdropColor[4] >= 0.95,
