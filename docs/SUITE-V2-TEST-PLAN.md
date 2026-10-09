@@ -17,9 +17,9 @@ One downloadable ZIP containing exactly five WoW addon folders: `NCore/` plus th
 
 ## Install the v2 test ZIP
 
-1. Download the ZIP artifact from the GitHub Actions **Validate collection** run for this development pull request. It is a test build, **not a public release**.
+1. Open the GitHub Actions **Validate collection** run linked from this development pull request. Under **Artifacts**, download `n-addon-suite-v2-test`. GitHub wraps the addon package inside a test-artifact ZIP: first open/extract that outer download, then locate `N-Addon-Collection-v2.0.0-alpha.1.zip` inside it. This is **not a public release**.
 2. Close WoW and remove/relocate the **old standalone Battlegrounds addon folder**. Running the old addon and embedded suite version together is unsupported: both register `/ncbg` and PvP hooks.
-3. Extract `NCore/`, `IndividualProgressionAddon/`, `DungeonJournal/`, `MultiBot/`, and `NaxxLootLottery/` directly into `World of Warcraft/Interface/AddOns/`.
+3. Open the **inner** `N-Addon-Collection-v2.0.0-alpha.1.zip` and extract its `NCore/`, `IndividualProgressionAddon/`, `DungeonJournal/`, `MultiBot/`, and `NaxxLootLottery/` folders directly into `World of Warcraft/Interface/AddOns/`.
 4. Check `Interface/AddOns/NCore/NCore.toc` and `Interface/AddOns/NCore/ClassicBattlegrounds/NClassicBattlegrounds.lua` exist. Do not create an extra outer collection folder.
 
 ## Functional tests
