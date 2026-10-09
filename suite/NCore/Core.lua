@@ -26,6 +26,11 @@ Suite.modules = {
         folder = "NaxxLootLottery",
         title = "N Loot Ledger",
         description = "Raid loot planning and lotteries (WIP)."
+    },
+    {
+        folder = "NTalentCalculator",
+        title = "Talent Calculator",
+        description = "Era-aware server talents and NT1 build sharing."
     }
 }
 
