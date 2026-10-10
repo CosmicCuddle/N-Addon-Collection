@@ -5,8 +5,10 @@
 **Current public release:** v2.0.0 — https://github.com/CosmicCuddle/N-Addon-Collection/releases/tag/v2.0.0  
 **Previous rollback release:** v1.0.0 — https://github.com/CosmicCuddle/N-Addon-Collection/releases/tag/v1.0.0  
 **WoW target:** client 3.3.5a (Interface 30300)  
-**Roadmap updated:** 10 October 2026  
+**Roadmap updated:** 10 October 2026 (maintainer handover and CI gate, PR #6)  
 **Next planned release:** not scheduled; do not invent a version until scope is approved
+
+For future projects, start from [docs/ROADMAP-TEMPLATE.md](docs/ROADMAP-TEMPLATE.md); this repository's own roadmap is fully populated rather than a generic template.
 
 This is the working record for maintenance, releases and recovery. It is not release marketing. Read the **Current baseline**, **Next task**, **Source update procedure**, and **Recovery** sections before starting another change. Edit this file with every source, configuration, packaging or behavior PR: record what changed, how it was tested, and exactly what still needs doing.
 
@@ -71,7 +73,7 @@ Do not “refresh all” and unknowingly import new upstream work. Stage one sou
 | Duplicate/obsolete install warning | Scan registered addon names and TOC metadata; warn when legacy ServerDungeonJournal or standalone BG conflicts appear | Lua regression tests; installer issue reproduced and resolved |
 | Suite v2.0.0 published | Exactly five installed roots; mandatory NCore plus four optional modules | Published normal release; ZIP validation succeeded |
 | Calculator separation | N Talent Calculator has a standalone source repository and test builds | **Explicitly excluded** from public collection v2.0.0 |
-| Current handover standard | ROADMAP.md, source/verification checklist and requirement to record next task with each change | Documentation / workflow update in progress |
+| Current handover standard | ROADMAP.md, source/verification checklist, CI enforcement and reusable template | Collection PR #6 validation passed; live ZIP unaffected |
 
 The calculator integration experiment was developed separately as N-Addon-Collection PR #5. It was based on the earlier v2 development branch and **must not be merged unreviewed**. Its source version and assumptions are now stale relative to the standalone addon. Rebase/reimplement as a new feature branch only if explicitly approved for a future collection.
 
