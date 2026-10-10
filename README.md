@@ -1,5 +1,7 @@
 # N Addon Collection
 
+**Development and handover:** See [ROADMAP.md](ROADMAP.md) for the current release baseline, exact source pins, tested work, unresolved issues, rollback procedures and the next maintainer task. Every substantive code/import/release change must update that roadmap.
+
 **WoW 3.3.5a (client build 12340; Interface 30300)** addons for the Naxxramas AzerothCore server.
 
 **The collection is a normal release.** Some individual addons may still be works in progress. In particular, **N Loot Ledger v0.1.0.27 is WIP, not fully complete, and its real Master Loot awarding remains subject to further server testing.** Its inclusion does not mean that every Loot Ledger feature is production-ready.
