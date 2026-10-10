@@ -12,6 +12,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Require updated roadmap for source and packaging PRs
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin "$BASE_REF"
+          changed="$(git diff --name-only "origin/$BASE_REF"...HEAD)"
+          echo "$changed"
+          if printf '%s\n' "$changed" | grep -Eq '^(suite/|addons/|scripts/|config/|sources\.lock\.json$|\.github/workflows/)'; then
+            if ! printf '%s\n' "$changed" | grep -Fxq 'ROADMAP.md'; then
+              echo '::error::Update ROADMAP.md with the approved changes and next task.'
+              exit 1
+            fi
+          fi
       - name: Check Python syntax
         run: python3 -m compileall -q scripts
       - name: Validate source config
