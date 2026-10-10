@@ -1,5 +1,7 @@
 # Maintainer guide
 
+**Always read and update [ROADMAP.md](../ROADMAP.md) with any source import, packaging change, workflow edit, or release.** It records the current baseline, blockers, tested steps, rollback and the next task.
+
 ## Core rule
 
 The five original GitHub addon repositories are the **development sources**. This collection contains **approved snapshots only**. Changes to the collection never write back to the source repositories.
@@ -27,7 +29,7 @@ The staging workflow needs **Contents: read/write** and **Pull requests: read/wr
 2. In this collection, choose **Actions → Stage approved addon update → Run workflow**.
 3. Select the correct addon. Leave **source_ref** empty to stage the current source `main`, or provide an exact tested SHA/tag for a single addon.
 4. Review the created PR, including the version and pinned commit in `sources.lock.json`.
-5. Merge when happy. No source repository is changed, and no public release is published by the staging workflow.
+5. **Update ROADMAP.md in the same staged PR** with the new source SHA, test status, known issues, rollback and next task. Merge when satisfied. No source repository is changed, and no public release is published by the staging workflow.
 
 **Run staging updates one at a time.** They share a staging branch. Finish the current PR before starting another update.
 
@@ -36,10 +38,10 @@ The staging workflow needs **Contents: read/write** and **Pull requests: read/wr
 1. Open **Actions → Build or publish addon bundle → Run workflow**.
 2. Enter a unique collection version, for example `v1.0.0`.
 3. Leave **publish_release** unchecked first. The workflow uploads a downloadable test ZIP in its run artifacts.
-4. Verify that the ZIP opens with exactly these top-level folders: `IndividualProgressionAddon/`, `DungeonJournal/`, `MultiBot/`, `NaxxLootLottery/`, `NClassicBattlegrounds/`.
+4. For **published v2.0.0**, verify exactly these top-level install folders: `NCore/`, `IndividualProgressionAddon/`, `DungeonJournal/`, `MultiBot/`, and `NaxxLootLottery/`. **NClassicBattlegrounds is embedded inside NCore**, and `NTalentCalculator` must not appear in v2.0.0.
 5. If satisfied, run again with **publish_release** checked. Keep **prerelease** unchecked for normal collection releases. Mark individual addons' unfinished or unverified features prominently in the release notes. Enable the pre-release option only when the collection package itself is experimental.
 
-The first normal collection release is `v1.0.0`, promoted from the earlier candidate build. Future releases are manually triggered. Releases use a separate **collection version**. Individual addons keep the versions written in their own TOC files; `sources.lock.json` records the source SHA and addon version.
+Both v1.0.0 (original snapshot bundle) and **v2.0.0 (required NCore suite)** were published as normal releases. For **any later version**, inspect and update the v2.0.0-specific workflow title trigger, release note header, five-root guard and NCore version assertion; these must not silently mislabel or block a new package. Future releases should be manually triggered. Releases use a separate **collection version**. Individual addons keep the versions written in their own TOC files; `sources.lock.json` records the source SHA and addon version.
 
 ## Backup and undo
 
