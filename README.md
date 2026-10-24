@@ -23,7 +23,7 @@ Type `/nsettings` or `/nsuite` to open the module manager. The four optional add
 
 | Installed folder | Addon | Original development repository | Notes |
 | --- | --- | --- | --- |
-| `NCore` | **N Addon Suite Core + Classic Battlegrounds** | [N-ClassicBattlegrounds](https://github.com/CosmicCuddle/N-ClassicBattlegrounds) | Required framework and progression-aware PvP interface. Classic Battlegrounds is embedded, not a separate installed folder. |
+| `NCore` | **N Addon Suite Core + Classic Battlegrounds** | [N-Core](https://github.com/CosmicCuddle/N-Core) | Required framework and progression-aware PvP interface. Classic Battlegrounds is embedded, not a separate installed folder. |
 | `IndividualProgressionAddon` | Individual Progression Companion | [Individual-Progression-Companion](https://github.com/CosmicCuddle/Individual-Progression-Companion) | Optional; Vanilla, TBC and Wrath progression guidance. |
 | `DungeonJournal` | Dungeon Journal | [N-Dungeon-Journal](https://github.com/CosmicCuddle/N-Dungeon-Journal) | Optional; dungeon and raid reference. |
 | `MultiBot` | MultiBot Chatless | [N-MultiBot-Chatless](https://github.com/CosmicCuddle/N-MultiBot-Chatless) | Optional; may require matching server modules. |
