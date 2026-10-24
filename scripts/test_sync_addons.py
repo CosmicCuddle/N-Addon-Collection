@@ -40,7 +40,7 @@ class TestAddonImport(unittest.TestCase):
         self.assertEqual(set(config), expected)
         self.assertEqual(
             config["NClassicBattlegrounds"]["repository"],
-            "CosmicCuddle/N-ClassicBattlegrounds"
+            "CosmicCuddle/N-Core"
         )
         self.assertEqual(
             config["NClassicBattlegrounds"]["toc"],

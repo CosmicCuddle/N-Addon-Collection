@@ -10,7 +10,7 @@ AutoWhisperReply and AutoHideMinimap are personal projects and are explicitly ex
 
 ## GitHub repository names verified
 
-The shorter repository names are now active: `N-Dungeon-Journal`, `N-MultiBot-Chatless`, `N-Loot-Ledger`, `N-ClassicBattlegrounds`, and `N-Addon-Collection`. `Individual-Progression-Companion` retains its original name. All five addon sources are independent development repositories.
+The shorter repository names are now active: `N-Dungeon-Journal`, `N-MultiBot-Chatless`, `N-Loot-Ledger`, `N-Core` (formerly `N-ClassicBattlegrounds`), and `N-Addon-Collection`. `Individual-Progression-Companion` retains its original name. All five addon sources are independent development repositories.
 
 **Never change addon folder names, `.toc` filenames, Lua identifiers, or SavedVariables when merely renaming a GitHub repository.**
 

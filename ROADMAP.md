@@ -5,12 +5,19 @@
 **Current public release:** v2.0.0 — https://github.com/CosmicCuddle/N-Addon-Collection/releases/tag/v2.0.0  
 **Previous rollback release:** v1.0.0 — https://github.com/CosmicCuddle/N-Addon-Collection/releases/tag/v1.0.0  
 **WoW target:** client 3.3.5a (Interface 30300)  
-**Roadmap updated:** 10 October 2026 (maintainer handover and CI gate, PR #6)  
+**Roadmap updated:** 24 October 2026 (source repository renamed N-ClassicBattlegrounds → N-Core)  
 **Next planned release:** not scheduled; do not invent a version until scope is approved
 
 For future projects, start from [docs/ROADMAP-TEMPLATE.md](docs/ROADMAP-TEMPLATE.md); this repository's own roadmap is fully populated rather than a generic template.
 
 This is the working record for maintenance, releases and recovery. It is not release marketing. Read the **Current baseline**, **Next task**, **Source update procedure**, and **Recovery** sections before starting another change. Edit this file with every source, configuration, packaging or behavior PR: record what changed, how it was tested, and exactly what still needs doing.
+
+### 24 October 2026 — source repository rename
+
+- `CosmicCuddle/N-ClassicBattlegrounds` was renamed to `CosmicCuddle/N-Core` (suite core repository, Classic Battlegrounds built in). Updated config/addons.json, sources.lock.json, the sync test, README and maintainer guide to the new name. GitHub redirects the old URL.
+- Pinned commit `74e45933454385b3b1168bf2c03da34ee1027985` (1.0.0) is unchanged; the `NClassicBattlegrounds` key, folder and TOC identities are unchanged. No snapshot or package content changes.
+- Tested: offline unit tests (`python3 -m unittest discover -s scripts -p 'test_*.py'`).
+- Next: the `stage-addon-updates.yml` addon choice list keys on the `NClassicBattlegrounds` key, not the repo name, so no workflow edit is needed.
 
 ## Current baseline — published v2.0.0
 
@@ -18,7 +25,7 @@ N Addon Collection is a curated, versioned installable suite, not five arbitrary
 
 | Installed folder | Status in v2.0.0 | Canonical source | Approved version |
 | --- | --- | --- | --- |
-| NCore | **Required**, central settings, module switching, compatibility warnings, mandatory Classic Battlegrounds integration | Suite-owned framework; embedded N-ClassicBattlegrounds source | NCore 2.0.0; source Classic BG 1.0.0 |
+| NCore | **Required**, central settings, module switching, compatibility warnings, mandatory Classic Battlegrounds integration | Suite-owned framework; embedded Classic Battlegrounds source from N-Core | NCore 2.0.0; source Classic BG 1.0.0 |
 | IndividualProgressionAddon | Optional | CosmicCuddle/Individual-Progression-Companion | 5.2.0 |
 | DungeonJournal | Optional | CosmicCuddle/N-Dungeon-Journal | 0.6.1 |
 | MultiBot | Optional | CosmicCuddle/N-MultiBot-Chatless | 4.0 |
@@ -40,7 +47,7 @@ The authoritative commit hashes and versions are in sources.lock.json. Current v
 | CosmicCuddle/N-Dungeon-Journal | a35e4404b421228d6b881a674a62d2167bf6187f | 0.6.1 |
 | CosmicCuddle/N-MultiBot-Chatless | d1606832a083ebf660d67b629b07207b184590dd | 4.0 |
 | CosmicCuddle/N-Loot-Ledger | 7169f5d7b8e959d1f0b86f9b7f98913d5288b1bb | 0.1.0.27 |
-| CosmicCuddle/N-ClassicBattlegrounds | 74e45933454385b3b1168bf2c03da34ee1027985 | 1.0.0 |
+| CosmicCuddle/N-Core | 74e45933454385b3b1168bf2c03da34ee1027985 | 1.0.0 |
 
 Do not “refresh all” and unknowingly import new upstream work. Stage one source change at a time, compare source versions/SHAs and any relevant licence/credit files, and approve only after testing.
 
