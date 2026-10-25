@@ -5,12 +5,26 @@
 **Current public release:** v2.0.0 — https://github.com/CosmicCuddle/N-Addon-Collection/releases/tag/v2.0.0  
 **Previous rollback release:** v1.0.0 — https://github.com/CosmicCuddle/N-Addon-Collection/releases/tag/v1.0.0  
 **WoW target:** client 3.3.5a (Interface 30300)  
-**Roadmap updated:** 10 October 2026 (maintainer handover and CI gate, PR #6)  
+**Roadmap updated:** 25 October 2026 (review-only manual release safety gate; published assets unchanged)  
 **Next planned release:** not scheduled; do not invent a version until scope is approved
 
 For future projects, start from [docs/ROADMAP-TEMPLATE.md](docs/ROADMAP-TEMPLATE.md); this repository's own roadmap is fully populated rather than a generic template.
 
 This is the working record for maintenance, releases and recovery. It is not release marketing. Read the **Current baseline**, **Next task**, **Source update procedure**, and **Recovery** sections before starting another change. Edit this file with every source, configuration, packaging or behavior PR: record what changed, how it was tested, and exactly what still needs doing.
+
+## 25 October 2026 — manual-only publication safeguard (DRAFT)
+
+**Problem discovered by source inspection:** The current collection `.github/workflows/build-collection.yml` has a legacy `push: main` event and a `startsWith(github.event.head_commit.message, 'release: N Addon Collection v2.0.0')` gate that can publish `v2.0.0` automatically when a specially named commit reaches main. It currently refuses to overwrite the already-existing release, but it is an obsolete trigger that should not be a future publication mechanism.
+
+**Proposed isolated draft (not merged):**
+- Keep a manual `workflow_dispatch` build path for users with permission to run Actions. Preserve the **default `publish_release: false`** and test-artifact output. Remove `push` entirely so merging a PR cannot launch the publishing workflow.
+- Require **both** explicit `publish_release=true` input **and** a run on `refs/heads/main` for the separate publish job. Reject a publish request on any other branch *before building*.
+- The build job receives read-only `contents: read`. Only the separate, opt-in publishing job receives `contents: write`. That job downloads the ZIP built and validated by the same workflow run and still refuses to overwrite an existing GitHub release.
+- Add six offline regression tests in `scripts/test_release_workflow_guard.py` to prevent accidentally restoring push/commit-prefix publishing, omitting the default false, permitting off-main publication, or bypassing the artifact handoff.
+- **Never execute a publish run to test this draft.** Hosted validation through the ordinary pull-request validation workflow tests the static guard and package builder; independent review is still required. No change to suite Lua/TOC/source lock/published ZIP/version or install folder.
+- **Limits:** A human with repository Actions permissions could still manually request a public release after an approved PR is merged; code guards cannot substitute for repository environment protections or owner approval. A future release also requires version-specific notes and packaging review, since the current release template still refers to `v2.0.0`.
+- **Next review gates:** Confirm GitHub Actions YAML semantics, the publish job's read from the validated bundle artifact, token permissions, and that a manual **build-only** test run can complete without a publish action. Keep previous `v2.0.0` and `v1.0.0` public releases untouched.
+- **Rollback:** Close/revert the unmerged safety draft; no public release asset has changed and no owner installation action is required.
 
 ## Current baseline — published v2.0.0
 
