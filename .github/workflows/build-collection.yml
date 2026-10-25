@@ -43,6 +43,11 @@ jobs:
             echo '::error::Use a version like v1.0.0 or v1.0.0-rc.1'
             exit 1
           fi
+          # Public-release version must match the core, TOC and release-note
+          # template. Build-only test artifacts may use alpha labels.
+          if [[ "$REQUEST_PUBLISH" == 'true' ]]; then
+            python3 scripts/check_release_metadata.py "$VERSION"
+          fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
       - name: Build install-ready bundle
