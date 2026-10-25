@@ -1,6 +1,7 @@
 """Offline layout and migration tests for the N Addon Suite v2 package."""
 import hashlib
 import json
+import re
 import stat
 import tempfile
 import xml.etree.ElementTree as ET
@@ -22,6 +23,47 @@ from build_bundle import (
     iter_files,
     make_version_manifest,
 )
+
+
+_WINDOWS_UNSAFE = re.compile(r'[<>:"\\|?*\x00-\x1f]')
+_WINDOWS_DEVICES = {"CON", "PRN", "AUX", "NUL"} | {
+    f"{prefix}{number}" for prefix in ("COM", "LPT") for number in range(1, 10)
+}
+
+
+def validate_windows_zip_member_names(names):
+    """Fail closed on ambiguities that break Win32-based WoW AddOns extraction.
+
+    Tests the *names* independent of the build: case-insensitive collisions,
+    reserved device names, invalid characters, trailing dot/space, backslash,
+    root escapes, empty/dot components, and accidental sixth addon roots.
+    """
+    expected_roots = {"NCore", *OPTIONAL}
+    seen = set()
+    for member in names:
+        if not member or not isinstance(member, str):
+            raise ValueError("Missing or invalid ZIP member name")
+        if member.startswith("/") or member.endswith("/"):
+            raise ValueError("Absolute or directory ZIP member: " + repr(member))
+        if _WINDOWS_UNSAFE.search(member):
+            raise ValueError("Invalid Windows ZIP character: " + repr(member))
+        parts = member.split("/")
+        if (
+            len(parts) < 2 or parts[0] not in expected_roots or
+            any(part in ("", ".", "..") for part in parts)
+        ):
+            raise ValueError("Invalid installed addon root/path: " + repr(member))
+        for part in parts:
+            if part != part.rstrip(". "):
+                raise ValueError("Windows trailing dot or space: " + repr(member))
+            if part.split(".", 1)[0].upper() in _WINDOWS_DEVICES:
+                raise ValueError("Windows reserved device filename: " + repr(member))
+        folded = member.casefold()
+        if folded in seen:
+            raise ValueError("Windows case-insensitive filename collision: " +
+                             repr(member))
+        seen.add(folded)
+    return len(seen)
 
 
 class TestSuitePackage(unittest.TestCase):
@@ -195,6 +237,41 @@ class TestSuitePackage(unittest.TestCase):
                     self.assertIn(relative, self.names, "XML loads a missing file")
                     if relative.lower().endswith(".xml"):
                         xml_to_visit.append(relative)
+
+    def test_windows_addon_zip_file_names_are_unambiguous(self):
+        """Every shipped file must remain uniquely extractable on Windows."""
+        self.assertEqual(
+            validate_windows_zip_member_names(self.archive.namelist()),
+            len(self.archive.namelist()),
+        )
+
+    def test_windows_zip_safety_guard_rejects_adversarial_names(self):
+        """Negative fixtures prove the guard rejects each high-risk class."""
+        base = ["NCore/Core.lua", "MultiBot/MultiBot.toc"]
+        bad_cases = {
+            "casefold-collision": "NCore/core.LUA",
+            "nested-repo-folder": "N-Addon-Collection/NCore/Core.lua",
+            "separate-bg-root": "NClassicBattlegrounds/NClassicBattlegrounds.lua",
+            "windows-device": "NCore/CON.lua",
+            "windows-device-extension": "NCore/COM1.txt",
+            "trailing-dot": "NCore/Test.",
+            "trailing-space": "NCore/Test ",
+            "backslash": r"NCore\Crash.lua",
+            "drive-colon": "NCore/C:evil.lua",
+            "absolute-root": "/NCore/Crash.lua",
+            "parent-traversal": "NCore/../Crash.lua",
+            "empty-segment": "NCore//Crash.lua",
+            "dot-segment": "NCore/./Crash.lua",
+            "control-character": "NCore/Bad\nfile.lua",
+            "unexpected-top-folder": "Extras/file.lua",
+            "directory-only": "NCore/",
+        }
+        for case, unsafe_name in bad_cases.items():
+            with self.subTest(case=case, filename=unsafe_name):
+                with self.assertRaises(ValueError):
+                    validate_windows_zip_member_names(base + [unsafe_name])
+        with self.assertRaisesRegex(ValueError, "collision"):
+            validate_windows_zip_member_names(base + ["NCore/Core.lua"])
 
     def test_exact_install_folders(self):
         names = {name.split("/", 1)[0] for name in self.names}
