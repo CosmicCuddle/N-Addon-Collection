@@ -40,7 +40,7 @@ class TestManualOnlyReleaseWorkflow(unittest.TestCase):
         self.assertIn("permissions:\n  contents: read", self.contents)
         self.assertIn("needs: bundle", self.publish)
         self.assertNotIn("gh release create", self.bundle)
-        self.assertIn("name: addon-collection-${{ inputs.version }}", self.bundle)
+        self.assertIn("name: addon-collection-${{ steps.meta.outputs.version }}", self.bundle)
 
     def test_publish_requires_manual_optin_and_main(self):
         self.assertIn(
