@@ -25,6 +25,10 @@ OPTIONAL = (
     "NaxxLootLottery",
 )
 SUITE_PREFIX = "N-Addon-Collection"
+# ZIP format does not represent dates earlier than 1980. Fixing entry metadata
+# removes wall-clock variance without changing any packaged addon file bytes.
+ZIP_ENTRY_DATE_TIME = (1980, 1, 1, 0, 0, 0)
+ZIP_FILE_MODE = 0o600
 
 
 def valid_file(path, base):
@@ -177,7 +181,14 @@ def build(version, output_dir):
     archive = output_dir / f"{SUITE_PREFIX}-{version}.zip"
     with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as z:
         for name, data in sorted(entries.items()):
-            z.writestr(name, data)
+            # ZipFile.writestr(name, data) otherwise stamps the current time.
+            # Preserve Python's previous regular-file permission default.
+            # File contents, member order and compression level are unchanged.
+            info = zipfile.ZipInfo(name, date_time=ZIP_ENTRY_DATE_TIME)
+            info.create_system = 3
+            info.external_attr = ZIP_FILE_MODE << 16
+            info.compress_type = zipfile.ZIP_DEFLATED
+            z.writestr(info, data, compress_type=zipfile.ZIP_DEFLATED, compresslevel=6)
 
     print(f"Created {archive} with {len(entries)} files (NCore + 4 optional modules)")
     return archive

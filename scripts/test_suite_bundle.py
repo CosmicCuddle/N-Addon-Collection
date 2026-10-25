@@ -1,4 +1,5 @@
 """Offline layout and migration tests for the N Addon Suite v2 package."""
+import hashlib
 import tempfile
 import unittest
 import zipfile
@@ -8,6 +9,8 @@ from build_bundle import (
     MANDATORY,
     OPTIONAL,
     ROOT,
+    ZIP_ENTRY_DATE_TIME,
+    ZIP_FILE_MODE,
     addon_toc_with_dependency,
     build,
     embed_classic_battlegrounds,
@@ -26,6 +29,26 @@ class TestSuitePackage(unittest.TestCase):
     def tearDownClass(cls):
         cls.archive.close()
         cls.temporary.cleanup()
+
+    def test_zip_metadata_is_stable_across_build_clock_times(self):
+        # Merely recreating a ZIP must not stamp the current date on 796 entries.
+        # 1980 is the earliest timestamp supported by the ZIP specification.
+        infos = self.archive.infolist()
+        self.assertTrue(infos)
+        for member in infos:
+            with self.subTest(name=member.filename):
+                self.assertEqual(member.date_time, ZIP_ENTRY_DATE_TIME)
+                self.assertEqual(member.compress_type, zipfile.ZIP_DEFLATED)
+                self.assertEqual(member.create_system, 3)
+                self.assertEqual(member.external_attr >> 16, ZIP_FILE_MODE)
+
+    def test_repeated_builds_produce_identical_zip_bytes(self):
+        initial = self.zip_path.read_bytes()
+        original_hash = hashlib.sha256(initial).hexdigest()
+        with tempfile.TemporaryDirectory() as tmp:
+            repeated = build("v2.0.0-alpha.1", Path(tmp)).read_bytes()
+        self.assertEqual(hashlib.sha256(repeated).hexdigest(), original_hash)
+        self.assertEqual(repeated, initial)
 
     def test_exact_install_folders(self):
         names = {name.split("/", 1)[0] for name in self.names}
