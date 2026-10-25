@@ -3,6 +3,7 @@ import hashlib
 import json
 import stat
 import tempfile
+import xml.etree.ElementTree as ET
 import unittest
 import zipfile
 from pathlib import Path, PurePosixPath
@@ -114,6 +115,86 @@ class TestSuitePackage(unittest.TestCase):
                     and stat.S_ISLNK(info.external_attr >> 16),
                     "No symbolic-link archive members"
                 )
+
+    def _toc_roots(self):
+        config = json.loads(
+            (ROOT / "config" / "addons.json").read_text(encoding="utf-8")
+        )
+        return {
+            "NCore": "NCore/NCore.toc",
+            **{
+                addon: addon + "/" + config[addon]["toc"]
+                for addon in OPTIONAL
+            },
+        }
+
+    @staticmethod
+    def _runtime_path(base, relative):
+        """Resolve addon runtime file paths without allowing parent traversal."""
+        normalized = relative.strip().replace("\\", "/")
+        parts = PurePosixPath(normalized)
+        if (
+            not normalized or parts.is_absolute() or
+            ".." in parts.parts or ":" in normalized or
+            not normalized.lower().endswith((".lua", ".xml"))
+        ):
+            raise ValueError("Unsafe/non-runtime file reference: " + repr(relative))
+        return str(PurePosixPath(base) / parts)
+
+    def test_every_toc_load_entry_exists_in_the_built_zip(self):
+        """Checks actual client loader entries for all five addon roots."""
+        for addon, toc_name in self._toc_roots().items():
+            self.assertIn(toc_name, self.names, toc_name)
+            toc = self.archive.read(toc_name).decode("utf-8-sig")
+            filenames = [
+                line.strip()
+                for line in toc.splitlines()
+                if line.strip() and not line.lstrip().startswith("#")
+            ]
+            self.assertTrue(filenames, "TOC must load runtime files: " + addon)
+            for filename in filenames:
+                with self.subTest(addon=addon, filename=filename):
+                    member = self._runtime_path(addon, filename)
+                    self.assertIn(member, self.names, "TOC references missing file")
+
+    def test_nested_xml_script_includes_exist_in_the_built_zip(self):
+        """WoW's XML loader resolves scripts relative to the XML directory."""
+        seen_xml = set()
+        xml_to_visit = []
+        for addon, toc_name in self._toc_roots().items():
+            toc = self.archive.read(toc_name).decode("utf-8-sig")
+            for filename in toc.splitlines():
+                filename = filename.strip()
+                if filename and not filename.startswith("#") and filename.lower().endswith(".xml"):
+                    xml_to_visit.append(self._runtime_path(addon, filename))
+
+        self.assertTrue(xml_to_visit, "Expected XML loader coverage in MultiBot")
+        while xml_to_visit:
+            xml_member = xml_to_visit.pop()
+            if xml_member in seen_xml:
+                continue
+            seen_xml.add(xml_member)
+            self.assertIn(xml_member, self.names, "XML loader file missing")
+            root = ET.fromstring(self.archive.read(xml_member))
+            addon = xml_member.split("/", 1)[0]
+            for node in root.iter():
+                tag_name = node.tag.rsplit("}", 1)[-1].lower()
+                if tag_name not in ("script", "include"):
+                    continue
+                referenced = node.attrib.get("file")
+                if not referenced:
+                    continue  # WoW also supports inline <Script> elements.
+                with self.subTest(xml=xml_member, reference=referenced):
+                    relative = self._runtime_path(
+                        str(PurePosixPath(xml_member).parent), referenced
+                    )
+                    self.assertEqual(
+                        relative.split("/", 1)[0], addon,
+                        "An XML include cannot escape its installed addon folder"
+                    )
+                    self.assertIn(relative, self.names, "XML loads a missing file")
+                    if relative.lower().endswith(".xml"):
+                        xml_to_visit.append(relative)
 
     def test_exact_install_folders(self):
         names = {name.split("/", 1)[0] for name in self.names}
