@@ -5,12 +5,22 @@
 **Current public release:** v2.0.0 — https://github.com/CosmicCuddle/N-Addon-Collection/releases/tag/v2.0.0  
 **Previous rollback release:** v1.0.0 — https://github.com/CosmicCuddle/N-Addon-Collection/releases/tag/v1.0.0  
 **WoW target:** client 3.3.5a (Interface 30300)  
-**Roadmap updated:** 10 October 2026 (maintainer handover and CI gate, PR #6)  
+**Roadmap updated:** 25 October 2026 (review-only embedded Classic BG Lua test proposal; public release unchanged)  
 **Next planned release:** not scheduled; do not invent a version until scope is approved
 
 For future projects, start from [docs/ROADMAP-TEMPLATE.md](docs/ROADMAP-TEMPLATE.md); this repository's own roadmap is fully populated rather than a generic template.
 
 This is the working record for maintenance, releases and recovery. It is not release marketing. Read the **Current baseline**, **Next task**, **Source update procedure**, and **Recovery** sections before starting another change. Edit this file with every source, configuration, packaging or behavior PR: record what changed, how it was tested, and exactly what still needs doing.
+
+## 25 October 2026 — proposed embedded Classic Battlegrounds CI extension (DRAFT)
+
+- **Scope:** Review-only test enhancement in isolated branch `test/ncore-embedded-classic-bg-contract`. This does **not** update NCore/Classic BG runtime sources, addon snapshots, source SHA pins, versions, ZIP contents, dependencies, installed folder list, or released v2.0.0/v1.0.0 artifacts.
+- **Why:** Existing CI validates the standalone Classic BG source and packaged Lua syntax, but has not exercised actual `NCore/Core.lua` plus the **build-transformed embedded BG** directly together using WotLK client API mocks. Standalone tests cannot prove that the required suite override is retained.
+- **Changes:** `scripts/test_suite_embedded_bg.lua` runs **Lua 5.1** with a mocked `CreateFrame`, Blizzard PvP frames, `GetQuestsCompleted` and chat APIs. It takes the *actual extracted ZIP* members `NCore/Core.lua` and `NCore/ClassicBattlegrounds/NClassicBattlegrounds.lua`. Updated `validate-collection.yml` to execute the harness only on a built v2 alpha test ZIP. The suite NCore mandatory `SetEnabled` guard, `/nsettings`, `/nsuite`, `/ncbg on|off` rejection and previously OFF SavedVariables are checked alongside era UI, Battlemaster mode and query refresh.
+- **S3:** `python3 -m unittest discover -s scripts -p 'test_*.py' -v`, package build, Lua 5.1 parser and packaged-file mock assertions — **PENDING GitHub Actions** when first drafted; do not claim PASS until checked against exact PR SHA/job log. Test artifact is not a release and is not the installed user's existing ZIP.
+- **S4–S7:** Independent peer review, actual client/UI acceptance, approval, and any release remain **NOT DONE**. Mocked frames and simulated quests do **not** prove Blizzard's live 3.3.5a implementation or server-side Battlemaster enforcement.
+- **Next:** Review exact-head CI result and source test quality; keep unrelated [N-Core framework ownership blueprint](https://github.com/CosmicCuddle/N-Core/pull/3) and [source URL rename](https://github.com/CosmicCuddle/N-Addon-Collection/pull/7) independent, with no source migration/merge without owner approval.
+- **Rollback:** Close the unmerged draft PR; all published source hashes, test ZIP release history and pinned imports stay unchanged.
 
 ## Current baseline — published v2.0.0
 
