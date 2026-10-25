@@ -25,6 +25,26 @@ Proposed isolated change `fix/reproducible-suite-zip-metadata`:
 - **S4–S7:** independent review, owner permission and any future rollout remain outstanding. Public collection v2.0.0 and rollback v1.0.0 are unchanged.
 - **Recovery:** close/revert the draft PR; the approved source snapshots and previously published release assets stay intact. This change must be independently reviewed before pairing with any future framework source migration.
 
+## 25 October 2026 — combined package QA gate for PRs #8 and #9 (DRAFT)
+
+**Stacked review only:** This branch is based on [ZIP reproducibility draft #9](https://github.com/CosmicCuddle/N-Addon-Collection/pull/9) exact `e95041dec74e40fec2761aabddd9d70c075f2f86` and carries the identical embedded-Lua test and validation workflow logic from [package integration draft #8](https://github.com/CosmicCuddle/N-Addon-Collection/pull/8) exact `20e00ef03be2ab0a26405798c2f12e87539e8105`. Neither source PR branch is modified; this is a disposable **combined integration test**, not permission to merge either source PR.
+
+- Run the **13 Python tests** (11 suite baseline plus two byte-for-byte ZIP reproducibility cases), complete package build, all existing Lua 5.1 core/settings/legacy checks, and the **42 embedded NCore/BG mock assertions** together against the same deterministic test ZIP.
+- Confirm current five-root v2 install layout, pinned source SHAs and 796-file candidate package. Compare exact current SHAs; **no changes to shipping addon Lua or TOC, source imports, public v2/v1 release assets or user computer**.
+- **CI STATUS AT CREATION: NOT YET VERIFIED**. The combined head will be reviewed independently; separate green CI from #8/#9 alone is not enough.
+- **Review/rollback:** If the combined check is clean, reviewers can assess proposed merge sequencing and lossless ROADMAP consolidation. If anything fails, close the combined draft without affecting either component PR or releases. No merges/releases/installs without owner approval.
+- **Dependency:** Combined draft must never be merged into `main` as a shortcut bypassing individual review, source pin review and fresh final-head validation.
+
+## 25 October 2026 — proposed embedded Classic Battlegrounds CI extension (DRAFT)
+
+- **Scope:** Review-only test enhancement in isolated branch `test/ncore-embedded-classic-bg-contract`. This does **not** update NCore/Classic BG runtime sources, addon snapshots, source SHA pins, versions, ZIP contents, dependencies, installed folder list, or released v2.0.0/v1.0.0 artifacts.
+- **Why:** Existing CI validates the standalone Classic BG source and packaged Lua syntax, but has not exercised actual `NCore/Core.lua` plus the **build-transformed embedded BG** directly together using WotLK client API mocks. Standalone tests cannot prove that the required suite override is retained.
+- **Changes:** `scripts/test_suite_embedded_bg.lua` runs **Lua 5.1** with a mocked `CreateFrame`, Blizzard PvP frames, `GetQuestsCompleted` and chat APIs. It takes the *actual extracted ZIP* members `NCore/Core.lua` and `NCore/ClassicBattlegrounds/NClassicBattlegrounds.lua`. Updated `validate-collection.yml` to execute the harness only on a built v2 alpha test ZIP. The suite NCore mandatory `SetEnabled` guard, `/nsettings`, `/nsuite`, `/ncbg on|off` rejection and previously OFF SavedVariables are checked alongside era UI, Battlemaster mode and query refresh.
+- **Combined S3:** Re-run the entire combined test candidate at its own exact GitHub SHA. Prior independent #8 and #9 CI were green separately, but neither proves this stack passes. Record actual run/job evidence before changing this status.
+- **S4–S7:** Independent peer review, actual client/UI acceptance, approval, and any release remain **NOT DONE**. Mocked frames and simulated quests do **not** prove Blizzard's live 3.3.5a implementation or server-side Battlemaster enforcement.
+- **Next:** Review exact-head CI result and source test quality; keep unrelated [N-Core framework ownership blueprint](https://github.com/CosmicCuddle/N-Core/pull/3) and [source URL rename](https://github.com/CosmicCuddle/N-Addon-Collection/pull/7) independent, with no source migration/merge without owner approval.
+- **Rollback:** Close the unmerged draft PR; all published source hashes, test ZIP release history and pinned imports stay unchanged.
+
 ## Current baseline — published v2.0.0
 
 N Addon Collection is a curated, versioned installable suite, not five arbitrary GitHub repository ZIPs. The main package includes exactly **five addon folders**:
