@@ -17,16 +17,12 @@ on:
         type: boolean
         required: true
         default: false
-  push:
-    branches:
-      - main
-
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   bundle:
-    if: "${{ github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'release: N Addon Collection v2.0.0') }}"
+    name: Build manually requested suite artifact
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -34,15 +30,23 @@ jobs:
         id: meta
         env:
           INPUT_VERSION: ${{ inputs.version }}
+          REQUEST_PUBLISH: ${{ inputs.publish_release }}
+          REQUEST_REF: ${{ github.ref }}
         run: |
-          if [[ "$GITHUB_EVENT_NAME" == 'push' ]]; then
-            VERSION='v2.0.0'
-          else
-            VERSION="$INPUT_VERSION"
+          set -euo pipefail
+          if [[ "$REQUEST_PUBLISH" == 'true' && "$REQUEST_REF" != 'refs/heads/main' ]]; then
+            echo '::error::Publishing is only permitted from the reviewed main branch.'
+            exit 1
           fi
+          VERSION="$INPUT_VERSION"
           if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9.-]+)?$ ]]; then
             echo '::error::Use a version like v1.0.0 or v1.0.0-rc.1'
             exit 1
+          fi
+          # Public-release version must match the core, TOC and release-note
+          # template. Build-only test artifacts may use alpha labels.
+          if [[ "$REQUEST_PUBLISH" == 'true' ]]; then
+            python3 scripts/check_release_metadata.py "$VERSION"
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
@@ -73,8 +77,24 @@ jobs:
           name: addon-collection-${{ steps.meta.outputs.version }}
           path: dist/*.zip
           if-no-files-found: error
-      - name: Publish only when expressly requested
-        if: ${{ github.event_name == 'push' || inputs.publish_release }}
+
+  publish:
+    name: Publish from explicitly opted-in main-branch build
+    needs: bundle
+    if: ${{ inputs.publish_release && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Retrieve artifact from this validated workflow run
+        uses: actions/download-artifact@v4
+        with:
+          name: addon-collection-${{ inputs.version }}
+          path: dist
+      - name: Publish only after explicit manual opt-in
         env:
           GH_TOKEN: ${{ github.token }}
           PRERELEASE: ${{ inputs.prerelease }}
