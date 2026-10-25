@@ -273,6 +273,46 @@ class TestSuitePackage(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "collision"):
             validate_windows_zip_member_names(base + ["NCore/Core.lua"])
 
+    def test_published_ncore_load_order_has_no_unreviewed_hunter_listener(self):
+        """A future v2 Hunter source addition must be explicit, never silent."""
+        toc = self.archive.read("NCore/NCore.toc").decode("utf-8-sig")
+        load_order = [
+            line.strip()
+            for line in toc.splitlines()
+            if line.strip() and not line.lstrip().startswith("#")
+        ]
+        self.assertEqual(load_order, [
+            "Core.lua",
+            "ExpectedVersions.lua",
+            r"ClassicBattlegrounds\NClassicBattlegrounds.lua",
+            "Settings.lua",
+            "LegacyCheck.lua",
+        ])
+        self.assertFalse(any(
+            "HunterPetAutocast" in line or "PetAutocastKeeper" in line
+            for line in load_order
+        ))
+
+    def test_unapproved_hunter_v1_protocol_is_not_accidentally_shipped(self):
+        """Until server v2 sign-off, preserve BG without a v1 autocast hook."""
+        self.assertNotIn("PetAutocastKeeper", {
+            name.split("/", 1)[0] for name in self.names
+        })
+        self.assertFalse(any(
+            name.startswith("NCore/HunterPetAutocast/")
+            or name.startswith("NCore/PetAutocastKeeper/")
+            for name in self.names
+        ))
+        self.assertIn(
+            "NCore/ClassicBattlegrounds/NClassicBattlegrounds.lua",
+            self.names,
+        )
+        for name in sorted(self.names):
+            if name.startswith("NCore/") and name.lower().endswith(".lua"):
+                with self.subTest(name=name):
+                    self.assertNotIn(b"NXCPAK", self.archive.read(name),
+                                     "No v1 addon whisper protocol in shipped NCore")
+
     def test_exact_install_folders(self):
         names = {name.split("/", 1)[0] for name in self.names}
         self.assertEqual(names, {"NCore", *OPTIONAL})
