@@ -1,20 +1,69 @@
 """Offline layout and migration tests for the N Addon Suite v2 package."""
 import hashlib
+import json
+import re
+import stat
 import tempfile
+import xml.etree.ElementTree as ET
 import unittest
 import zipfile
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from build_bundle import (
+    CORE,
     MANDATORY,
     OPTIONAL,
     ROOT,
+    SNAPSHOTS,
     ZIP_ENTRY_DATE_TIME,
     ZIP_FILE_MODE,
     addon_toc_with_dependency,
     build,
     embed_classic_battlegrounds,
+    iter_files,
+    make_version_manifest,
 )
+
+
+_WINDOWS_UNSAFE = re.compile(r'[<>:"\\|?*\x00-\x1f]')
+_WINDOWS_DEVICES = {"CON", "PRN", "AUX", "NUL"} | {
+    f"{prefix}{number}" for prefix in ("COM", "LPT") for number in range(1, 10)
+}
+
+
+def validate_windows_zip_member_names(names):
+    """Fail closed on ambiguities that break Win32-based WoW AddOns extraction.
+
+    Tests the *names* independent of the build: case-insensitive collisions,
+    reserved device names, invalid characters, trailing dot/space, backslash,
+    root escapes, empty/dot components, and accidental sixth addon roots.
+    """
+    expected_roots = {"NCore", *OPTIONAL}
+    seen = set()
+    for member in names:
+        if not member or not isinstance(member, str):
+            raise ValueError("Missing or invalid ZIP member name")
+        if member.startswith("/") or member.endswith("/"):
+            raise ValueError("Absolute or directory ZIP member: " + repr(member))
+        if _WINDOWS_UNSAFE.search(member):
+            raise ValueError("Invalid Windows ZIP character: " + repr(member))
+        parts = member.split("/")
+        if (
+            len(parts) < 2 or parts[0] not in expected_roots or
+            any(part in ("", ".", "..") for part in parts)
+        ):
+            raise ValueError("Invalid installed addon root/path: " + repr(member))
+        for part in parts:
+            if part != part.rstrip(". "):
+                raise ValueError("Windows trailing dot or space: " + repr(member))
+            if part.split(".", 1)[0].upper() in _WINDOWS_DEVICES:
+                raise ValueError("Windows reserved device filename: " + repr(member))
+        folded = member.casefold()
+        if folded in seen:
+            raise ValueError("Windows case-insensitive filename collision: " +
+                             repr(member))
+        seen.add(folded)
+    return len(seen)
 
 
 class TestSuitePackage(unittest.TestCase):
@@ -49,6 +98,220 @@ class TestSuitePackage(unittest.TestCase):
             repeated = build("v2.0.0-alpha.1", Path(tmp)).read_bytes()
         self.assertEqual(hashlib.sha256(repeated).hexdigest(), original_hash)
         self.assertEqual(repeated, initial)
+
+    def test_every_archive_member_matches_source_or_approved_transform(self):
+        """All files must match source snapshots, except documented transforms."""
+        config = json.loads(
+            (ROOT / "config" / "addons.json").read_text(encoding="utf-8")
+        )
+        lock = json.loads((ROOT / "sources.lock.json").read_text(encoding="utf-8"))
+        self.assertEqual(set(config), {MANDATORY, *OPTIONAL})
+        self.assertEqual(set(lock), set(config))
+
+        expected = {}
+        for file, relative in iter_files(CORE):
+            expected["NCore/" + relative] = file.read_bytes()
+
+        expected["NCore/ExpectedVersions.lua"] = make_version_manifest(lock)
+        source = SNAPSHOTS / MANDATORY / "NClassicBattlegrounds.lua"
+        expected["NCore/ClassicBattlegrounds/NClassicBattlegrounds.lua"] = (
+            embed_classic_battlegrounds(source.read_bytes())
+        )
+
+        for addon in OPTIONAL:
+            source_folder = SNAPSHOTS / addon
+            toc = config[addon]["toc"]
+            for file, relative in iter_files(source_folder):
+                payload = file.read_bytes()
+                if relative == toc:
+                    payload = addon_toc_with_dependency(payload)
+                expected[addon + "/" + relative] = payload
+
+        actual_names = self.archive.namelist()
+        self.assertEqual(len(actual_names), len(set(actual_names)),
+                         "Archive must not contain duplicate file entries")
+        self.assertEqual(set(actual_names), set(expected),
+                         "ZIP contains a missing or unexpected source member")
+        for name, source_bytes in expected.items():
+            with self.subTest(name=name):
+                self.assertEqual(
+                    hashlib.sha256(self.archive.read(name)).digest(),
+                    hashlib.sha256(source_bytes).digest(),
+                    "Packaged member payload differs from approved source/transform"
+                )
+
+    def test_all_archive_member_paths_and_types_are_safe(self):
+        """Protect extraction paths, including on Windows ZIP extractors."""
+        for info in self.archive.infolist():
+            with self.subTest(name=info.filename):
+                self.assertFalse(info.is_dir(), "No directory-only archive entries")
+                self.assertNotIn("\\", info.filename, "Use ZIP forward slashes")
+                name = PurePosixPath(info.filename)
+                self.assertFalse(name.is_absolute())
+                self.assertNotIn("..", name.parts)
+                self.assertEqual(str(name), info.filename)
+                self.assertGreaterEqual(len(name.parts), 2)
+                self.assertIn(name.parts[0], {"NCore", *OPTIONAL})
+                self.assertFalse(
+                    info.create_system == 3
+                    and stat.S_ISLNK(info.external_attr >> 16),
+                    "No symbolic-link archive members"
+                )
+
+    def _toc_roots(self):
+        config = json.loads(
+            (ROOT / "config" / "addons.json").read_text(encoding="utf-8")
+        )
+        return {
+            "NCore": "NCore/NCore.toc",
+            **{
+                addon: addon + "/" + config[addon]["toc"]
+                for addon in OPTIONAL
+            },
+        }
+
+    @staticmethod
+    def _runtime_path(base, relative):
+        """Resolve addon runtime file paths without allowing parent traversal."""
+        normalized = relative.strip().replace("\\", "/")
+        parts = PurePosixPath(normalized)
+        if (
+            not normalized or parts.is_absolute() or
+            ".." in parts.parts or ":" in normalized or
+            not normalized.lower().endswith((".lua", ".xml"))
+        ):
+            raise ValueError("Unsafe/non-runtime file reference: " + repr(relative))
+        return str(PurePosixPath(base) / parts)
+
+    def test_every_toc_load_entry_exists_in_the_built_zip(self):
+        """Checks actual client loader entries for all five addon roots."""
+        for addon, toc_name in self._toc_roots().items():
+            self.assertIn(toc_name, self.names, toc_name)
+            toc = self.archive.read(toc_name).decode("utf-8-sig")
+            filenames = [
+                line.strip()
+                for line in toc.splitlines()
+                if line.strip() and not line.lstrip().startswith("#")
+            ]
+            self.assertTrue(filenames, "TOC must load runtime files: " + addon)
+            for filename in filenames:
+                with self.subTest(addon=addon, filename=filename):
+                    member = self._runtime_path(addon, filename)
+                    self.assertIn(member, self.names, "TOC references missing file")
+
+    def test_nested_xml_script_includes_exist_in_the_built_zip(self):
+        """WoW's XML loader resolves scripts relative to the XML directory."""
+        seen_xml = set()
+        xml_to_visit = []
+        for addon, toc_name in self._toc_roots().items():
+            toc = self.archive.read(toc_name).decode("utf-8-sig")
+            for filename in toc.splitlines():
+                filename = filename.strip()
+                if filename and not filename.startswith("#") and filename.lower().endswith(".xml"):
+                    xml_to_visit.append(self._runtime_path(addon, filename))
+
+        self.assertTrue(xml_to_visit, "Expected XML loader coverage in MultiBot")
+        while xml_to_visit:
+            xml_member = xml_to_visit.pop()
+            if xml_member in seen_xml:
+                continue
+            seen_xml.add(xml_member)
+            self.assertIn(xml_member, self.names, "XML loader file missing")
+            root = ET.fromstring(self.archive.read(xml_member))
+            addon = xml_member.split("/", 1)[0]
+            for node in root.iter():
+                tag_name = node.tag.rsplit("}", 1)[-1].lower()
+                if tag_name not in ("script", "include"):
+                    continue
+                referenced = node.attrib.get("file")
+                if not referenced:
+                    continue  # WoW also supports inline <Script> elements.
+                with self.subTest(xml=xml_member, reference=referenced):
+                    relative = self._runtime_path(
+                        str(PurePosixPath(xml_member).parent), referenced
+                    )
+                    self.assertEqual(
+                        relative.split("/", 1)[0], addon,
+                        "An XML include cannot escape its installed addon folder"
+                    )
+                    self.assertIn(relative, self.names, "XML loads a missing file")
+                    if relative.lower().endswith(".xml"):
+                        xml_to_visit.append(relative)
+
+    def test_windows_addon_zip_file_names_are_unambiguous(self):
+        """Every shipped file must remain uniquely extractable on Windows."""
+        self.assertEqual(
+            validate_windows_zip_member_names(self.archive.namelist()),
+            len(self.archive.namelist()),
+        )
+
+    def test_windows_zip_safety_guard_rejects_adversarial_names(self):
+        """Negative fixtures prove the guard rejects each high-risk class."""
+        base = ["NCore/Core.lua", "MultiBot/MultiBot.toc"]
+        bad_cases = {
+            "casefold-collision": "NCore/core.LUA",
+            "nested-repo-folder": "N-Addon-Collection/NCore/Core.lua",
+            "separate-bg-root": "NClassicBattlegrounds/NClassicBattlegrounds.lua",
+            "windows-device": "NCore/CON.lua",
+            "windows-device-extension": "NCore/COM1.txt",
+            "trailing-dot": "NCore/Test.",
+            "trailing-space": "NCore/Test ",
+            "backslash": r"NCore\Crash.lua",
+            "drive-colon": "NCore/C:evil.lua",
+            "absolute-root": "/NCore/Crash.lua",
+            "parent-traversal": "NCore/../Crash.lua",
+            "empty-segment": "NCore//Crash.lua",
+            "dot-segment": "NCore/./Crash.lua",
+            "control-character": "NCore/Bad\nfile.lua",
+            "unexpected-top-folder": "Extras/file.lua",
+            "directory-only": "NCore/",
+        }
+        for case, unsafe_name in bad_cases.items():
+            with self.subTest(case=case, filename=unsafe_name):
+                with self.assertRaises(ValueError):
+                    validate_windows_zip_member_names(base + [unsafe_name])
+        with self.assertRaisesRegex(ValueError, "collision"):
+            validate_windows_zip_member_names(base + ["NCore/Core.lua"])
+
+    def test_published_ncore_load_order_has_no_unreviewed_hunter_listener(self):
+        """A future v2 Hunter source addition must be explicit, never silent."""
+        toc = self.archive.read("NCore/NCore.toc").decode("utf-8-sig")
+        load_order = [
+            line.strip()
+            for line in toc.splitlines()
+            if line.strip() and not line.lstrip().startswith("#")
+        ]
+        self.assertEqual(load_order, [
+            "Core.lua",
+            "ExpectedVersions.lua",
+            r"ClassicBattlegrounds\NClassicBattlegrounds.lua",
+            "Settings.lua",
+            "LegacyCheck.lua",
+        ])
+        self.assertFalse(any(
+            "HunterPetAutocast" in line or "PetAutocastKeeper" in line
+            for line in load_order
+        ))
+
+    def test_unapproved_hunter_v1_protocol_is_not_accidentally_shipped(self):
+        """Until server v2 sign-off, preserve BG without a v1 autocast hook."""
+        self.assertNotIn("PetAutocastKeeper", {
+            name.split("/", 1)[0] for name in self.names
+        })
+        self.assertFalse(any(
+            name.startswith("NCore/HunterPetAutocast/")
+            or name.startswith("NCore/PetAutocastKeeper/")
+            for name in self.names
+        ))
+        self.assertIn(
+            "NCore/ClassicBattlegrounds/NClassicBattlegrounds.lua",
+            self.names,
+        )
+        for name in sorted(self.names):
+            if name.startswith("NCore/") and name.lower().endswith(".lua"):
+                with self.subTest(name=name):
+                    self.assertNotIn(b"NXCPAK", self.archive.read(name),
+                                     "No v1 addon whisper protocol in shipped NCore")
 
     def test_exact_install_folders(self):
         names = {name.split("/", 1)[0] for name in self.names}
