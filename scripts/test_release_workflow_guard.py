@@ -6,6 +6,8 @@ publishing. They do not publish anything or prove GitHub's live permissions.
 import unittest
 from pathlib import Path
 
+from check_release_metadata import (check_release_version, require_publish_metadata_consistency)
+
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW = ROOT / ".github" / "workflows" / "build-collection.yml"
 
@@ -21,6 +23,35 @@ class TestManualOnlyReleaseWorkflow(unittest.TestCase):
             "\n  publish:\n", 1
         )[0]
         cls.publish = cls.contents.split("\n  publish:\n", 1)[1]
+
+    def test_publish_version_metadata_agrees_on_current_baseline(self):
+        self.assertTrue(check_release_version("v2.0.0"))
+        self.assertIn('python3 scripts/check_release_metadata.py "$VERSION"',
+                      self.bundle)
+        self.assertIn("""if [[ "$REQUEST_PUBLISH" == 'true' ]]; then""",
+                      self.bundle)
+
+    def test_publish_metadata_rejects_mismatched_or_missing_version(self):
+        toc = "## Interface: 30300\n## Version: 2.0.0\n"
+        core = 'Suite.version = "2.0.0"\n'
+        notes = """print('## N Addon Suite v2.0.0')"""
+        cases = [
+            ("v2.0.1", toc, core, notes),
+            ("v1.0.0", toc, core, notes),
+            ("v2.0.0-alpha.1", toc, core, notes),
+            ("v2.0.0", toc.replace("2.0.0", "2.0.1"), core, notes),
+            ("v2.0.0", toc, core.replace("2.0.0", "2.0.1"), notes),
+            ("v2.0.0", toc, core, notes.replace("v2.0.0", "v2.0.1")),
+            ("v2.0.0", toc, "", notes),
+            ("v2.0.0", toc, core, ""),
+        ]
+        for requested, t, c, n in cases:
+            with self.subTest(requested=requested, toc=t, core=c, notes=n):
+                with self.assertRaises(ValueError):
+                    require_publish_metadata_consistency(requested, t, c, n)
+        self.assertTrue(require_publish_metadata_consistency(
+            "v2.0.0", toc, core, notes
+        ))
 
     def test_only_manual_dispatch_can_trigger_release_workflow(self):
         self.assertIn("  workflow_dispatch:\n", self.events)
