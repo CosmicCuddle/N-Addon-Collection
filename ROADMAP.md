@@ -5,12 +5,25 @@
 **Current public release:** v2.0.0 — https://github.com/CosmicCuddle/N-Addon-Collection/releases/tag/v2.0.0  
 **Previous rollback release:** v1.0.0 — https://github.com/CosmicCuddle/N-Addon-Collection/releases/tag/v1.0.0  
 **WoW target:** client 3.3.5a (Interface 30300)  
-**Roadmap updated:** 10 October 2026 (maintainer handover and CI gate, PR #6)  
+**Roadmap updated:** 25 October 2026 (review-only reproducible ZIP metadata fix; releases unchanged)  
 **Next planned release:** not scheduled; do not invent a version until scope is approved
 
 For future projects, start from [docs/ROADMAP-TEMPLATE.md](docs/ROADMAP-TEMPLATE.md); this repository's own roadmap is fully populated rather than a generic template.
 
 This is the working record for maintenance, releases and recovery. It is not release marketing. Read the **Current baseline**, **Next task**, **Source update procedure**, and **Recovery** sections before starting another change. Edit this file with every source, configuration, packaging or behavior PR: record what changed, how it was tested, and exactly what still needs doing.
+
+## 25 October 2026 — deterministic test-package ZIP metadata (DRAFT)
+
+**Review-only, no merge/release permission.** Current `scripts/build_bundle.py` calls `ZipFile.writestr(name, data)` with a filename string; Python automatically records the build machine's current date/time in every ZIP entry. Thus builds from identical `sources.lock.json` pins and files can have different archive hashes, making source-migration comparisons noisy.
+
+Proposed isolated change `fix/reproducible-suite-zip-metadata`:
+- Fix each output entry's ZIP timestamp to `1980-01-01 00:00:00` (ZIP format's earliest permitted date); continue sorting names and using the existing DEFLATE level 6 compression. Explicitly preserve the current Python `0o600` file-mode metadata for these entries.
+- Add `test_zip_metadata_is_stable_across_build_clock_times` to verify timestamp, compression, OS identifier and file mode for every archive entry.
+- Add `test_repeated_builds_produce_identical_zip_bytes` to compare complete ZIP bytes and SHA-256 across independent builds from the same checked-out files.
+- **No changes to addon Lua, TOC, XML, images, SavedVariables, version metadata, source pins, installed folder names or optional module selection.** Only ZIP entry metadata is intentionally normalized. The assembled ZIP produced by CI is a review artifact, **not the published v2.0.0 release**.
+- **S3 evidence:** tests and GitHub CI require exact-head completion before reporting PASS; do not infer real-client behaviour. ZIP hashes can still differ across different Python/zlib versions; record build environment where exact archive SHA is used.
+- **S4–S7:** independent review, owner permission and any future rollout remain outstanding. Public collection v2.0.0 and rollback v1.0.0 are unchanged.
+- **Recovery:** close/revert the draft PR; the approved source snapshots and previously published release assets stay intact. This change must be independently reviewed before pairing with any future framework source migration.
 
 ## Current baseline — published v2.0.0
 
