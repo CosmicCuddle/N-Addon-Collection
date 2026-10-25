@@ -62,11 +62,19 @@ jobs:
           archive = Path('dist/N-Addon-Collection-v2.0.0-alpha.1.zip')
           with tempfile.TemporaryDirectory() as tmp:
               with zipfile.ZipFile(archive) as z:
-                  source = z.read('NCore/ClassicBattlegrounds/NClassicBattlegrounds.lua')
-              path = Path(tmp) / 'NClassicBattlegrounds.lua'
-              path.write_bytes(source)
-              subprocess.run(['luac5.1', '-p', str(path)], check=True)
-          print('Embedded Battlegrounds syntax is valid in Lua 5.1')
+                  bg_source = z.read('NCore/ClassicBattlegrounds/NClassicBattlegrounds.lua')
+                  core_source = z.read('NCore/Core.lua')
+              bg_path = Path(tmp) / 'NClassicBattlegrounds.lua'
+              core_path = Path(tmp) / 'Core.lua'
+              bg_path.write_bytes(bg_source)
+              core_path.write_bytes(core_source)
+              subprocess.run(['luac5.1', '-p', str(core_path)], check=True)
+              subprocess.run(['luac5.1', '-p', str(bg_path)], check=True)
+              subprocess.run([
+                  'lua5.1', 'scripts/test_suite_embedded_bg.lua',
+                  str(core_path), str(bg_path)
+              ], check=True)
+          print('Embedded NCore and Classic Battlegrounds syntax/logic verified offline')
           PY
       - name: Upload test suite ZIP (not a public release)
         if: ${{ github.event_name == 'pull_request' }}
