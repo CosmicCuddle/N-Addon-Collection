@@ -74,7 +74,7 @@ jobs:
           if-no-files-found: error
 
   publish:
-    name: Publish from manually approved main-branch build
+    name: Publish from explicitly opted-in main-branch build
     needs: bundle
     if: ${{ inputs.publish_release && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
