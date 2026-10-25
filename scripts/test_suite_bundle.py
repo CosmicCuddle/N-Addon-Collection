@@ -1,19 +1,25 @@
 """Offline layout and migration tests for the N Addon Suite v2 package."""
 import hashlib
+import json
+import stat
 import tempfile
 import unittest
 import zipfile
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from build_bundle import (
+    CORE,
     MANDATORY,
     OPTIONAL,
     ROOT,
+    SNAPSHOTS,
     ZIP_ENTRY_DATE_TIME,
     ZIP_FILE_MODE,
     addon_toc_with_dependency,
     build,
     embed_classic_battlegrounds,
+    iter_files,
+    make_version_manifest,
 )
 
 
@@ -49,6 +55,65 @@ class TestSuitePackage(unittest.TestCase):
             repeated = build("v2.0.0-alpha.1", Path(tmp)).read_bytes()
         self.assertEqual(hashlib.sha256(repeated).hexdigest(), original_hash)
         self.assertEqual(repeated, initial)
+
+    def test_every_archive_member_matches_source_or_approved_transform(self):
+        """All files must match source snapshots, except documented transforms."""
+        config = json.loads(
+            (ROOT / "config" / "addons.json").read_text(encoding="utf-8")
+        )
+        lock = json.loads((ROOT / "sources.lock.json").read_text(encoding="utf-8"))
+        self.assertEqual(set(config), {MANDATORY, *OPTIONAL})
+        self.assertEqual(set(lock), set(config))
+
+        expected = {}
+        for file, relative in iter_files(CORE):
+            expected["NCore/" + relative] = file.read_bytes()
+
+        expected["NCore/ExpectedVersions.lua"] = make_version_manifest(lock)
+        source = SNAPSHOTS / MANDATORY / "NClassicBattlegrounds.lua"
+        expected["NCore/ClassicBattlegrounds/NClassicBattlegrounds.lua"] = (
+            embed_classic_battlegrounds(source.read_bytes())
+        )
+
+        for addon in OPTIONAL:
+            source_folder = SNAPSHOTS / addon
+            toc = config[addon]["toc"]
+            for file, relative in iter_files(source_folder):
+                payload = file.read_bytes()
+                if relative == toc:
+                    payload = addon_toc_with_dependency(payload)
+                expected[addon + "/" + relative] = payload
+
+        actual_names = self.archive.namelist()
+        self.assertEqual(len(actual_names), len(set(actual_names)),
+                         "Archive must not contain duplicate file entries")
+        self.assertEqual(set(actual_names), set(expected),
+                         "ZIP contains a missing or unexpected source member")
+        for name, source_bytes in expected.items():
+            with self.subTest(name=name):
+                self.assertEqual(
+                    hashlib.sha256(self.archive.read(name)).digest(),
+                    hashlib.sha256(source_bytes).digest(),
+                    "Packaged member payload differs from approved source/transform"
+                )
+
+    def test_all_archive_member_paths_and_types_are_safe(self):
+        """Protect extraction paths, including on Windows ZIP extractors."""
+        for info in self.archive.infolist():
+            with self.subTest(name=info.filename):
+                self.assertFalse(info.is_dir(), "No directory-only archive entries")
+                self.assertNotIn("\\", info.filename, "Use ZIP forward slashes")
+                name = PurePosixPath(info.filename)
+                self.assertFalse(name.is_absolute())
+                self.assertNotIn("..", name.parts)
+                self.assertEqual(str(name), info.filename)
+                self.assertGreaterEqual(len(name.parts), 2)
+                self.assertIn(name.parts[0], {"NCore", *OPTIONAL})
+                self.assertFalse(
+                    info.create_system == 3
+                    and stat.S_ISLNK(info.external_attr >> 16),
+                    "No symbolic-link archive members"
+                )
 
     def test_exact_install_folders(self):
         names = {name.split("/", 1)[0] for name in self.names}
