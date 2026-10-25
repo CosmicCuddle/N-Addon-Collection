@@ -12,6 +12,31 @@ For future projects, start from [docs/ROADMAP-TEMPLATE.md](docs/ROADMAP-TEMPLATE
 
 This is the working record for maintenance, releases and recovery. It is not release marketing. Read the **Current baseline**, **Next task**, **Source update procedure**, and **Recovery** sections before starting another change. Edit this file with every source, configuration, packaging or behavior PR: record what changed, how it was tested, and exactly what still needs doing.
 
+## 25 October 2026 — combined QA + manual-release gate verification (STACKED DRAFT)
+
+**Compatibility review only.** This *isolated* branch is based on [Collection QA draft #10](https://github.com/CosmicCuddle/N-Addon-Collection/pull/10), which itself is based on [reproducible ZIP draft #9](https://github.com/CosmicCuddle/N-Addon-Collection/pull/9). It stages the exact three file contents of [manual-only release draft #11](https://github.com/CosmicCuddle/N-Addon-Collection/pull/11) at head `a8d019a07b2d41a48882585e8225220a05f94fd3`: `.github/workflows/build-collection.yml`, `scripts/check_release_metadata.py` and `scripts/test_release_workflow_guard.py`. Both ROADMAP workstreams are preserved without overwriting either maintainer branch.
+
+- **Expected combined static checks:** 11 base collection Python tests + 10 additional QA tests from #10 + 8 release-safety tests from #11 = **29 Python methods**; packaged NCore/Classic BG has **42 Lua 5.1 mock assertions** and existing core/settings/legacy tests. Preserve the same 796-file five-root test ZIP and source lock.
+- No manual publishing `workflow_dispatch` is called. The normal PR validation workflow may generate its test artifact but **must never release**, even if all static tests pass.
+- **At creation: CI PENDING**. Do not claim the combination passes based on independent green CI on component branches. Check the exact integrated SHA, original hosted logs, pinned source locks, release workflow source blobs, and artifact upload after creating this stacked PR.
+- **Known integration limitation:** Existing `ROADMAP.md` entries belong to multiple drafts, including overlapping text. A future final merge must reconcile the same sections and rerun CI after approval; the combined branch is **not** approval to fast-track or merge all component PRs.
+- Grok/CS02 is on the owner-reported break. Independent peer reviews remain outstanding. No server module, Hunter v1, v2 protocol, user AddOns, source migration, release assets or live server modifications are part of this candidate.
+
+## 25 October 2026 — manual-only publication safeguard (DRAFT)
+
+**Problem discovered by source inspection:** The current collection `.github/workflows/build-collection.yml` has a legacy `push: main` event and a `startsWith(github.event.head_commit.message, 'release: N Addon Collection v2.0.0')` gate that can publish `v2.0.0` automatically when a specially named commit reaches main. It currently refuses to overwrite the already-existing release, but it is an obsolete trigger that should not be a future publication mechanism.
+
+**Proposed isolated draft (not merged):**
+- Keep a manual `workflow_dispatch` build path for users with permission to run Actions. Preserve the **default `publish_release: false`** and test-artifact output. Remove `push` entirely so merging a PR cannot launch the publishing workflow.
+- Require **both** explicit `publish_release=true` input **and** a run on `refs/heads/main` for the separate publish job. Reject a publish request on any other branch *before building*.
+- The build job receives read-only `contents: read`. Only the separate, opt-in publishing job receives `contents: write`. That job downloads the ZIP built and validated by the same workflow run and still refuses to overwrite an existing GitHub release.
+- Add **eight** offline regression tests in `scripts/test_release_workflow_guard.py`: six guard manual-only publishing, minimum permissions, same-run artifact handling and branch restrictions; two test the stricter **release metadata version consistency** gate and negative fixtures.
+- **Fail-closed release version gate:** When and only when `publish_release=true`, `scripts/check_release_metadata.py` checks the requested stable release tag matches the source `suite/NCore/NCore.toc` version, `suite/NCore/Core.lua` `Suite.version`, and GitHub release-note heading. This deliberately prevents renaming a fixed v2.0.0 runtime/notes package as v2.0.1. Future versions require separately reviewed core version, notes and source snapshot updates before a manual release. Build-only alpha test artifacts continue to work with `publish_release=false`.
+- **Never execute a publish run to test this draft.** Hosted validation through the ordinary pull-request validation workflow tests the static guard and package builder; independent review is still required. No change to suite Lua/TOC/source lock/published ZIP/version or install folder.
+- **Limits:** A human with repository Actions permissions could still manually request a public release after an approved PR is merged; code guards cannot substitute for repository environment protections or owner approval. A future release also requires version-specific notes and packaging review, since the current release template still refers to `v2.0.0`.
+- **Next review gates:** Confirm GitHub Actions YAML semantics, the publish job's read from the validated bundle artifact, token permissions, and that a manual **build-only** test run can complete without a publish action. Keep previous `v2.0.0` and `v1.0.0` public releases untouched.
+- **Rollback:** Close/revert the unmerged safety draft; no public release asset has changed and no owner installation action is required.
+
 ## 25 October 2026 — deterministic test-package ZIP metadata (DRAFT)
 
 **Review-only, no merge/release permission.** Current `scripts/build_bundle.py` calls `ZipFile.writestr(name, data)` with a filename string; Python automatically records the build machine's current date/time in every ZIP entry. Thus builds from identical `sources.lock.json` pins and files can have different archive hashes, making source-migration comparisons noisy.
